@@ -10,11 +10,12 @@ export default function ContactPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get('name') ?? '');
-    const email = String(form.get('email') ?? '');
+    const formElement = event.currentTarget;
+    const formData = new FormData(formElement);
+    const name = String(formData.get('name') ?? '');
+    const email = String(formData.get('email') ?? '');
     const subject = `StudyCo contact from ${name}`;
-    const message = String(form.get('message') ?? '');
+    const message = String(formData.get('message') ?? '');
 
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
@@ -42,7 +43,7 @@ export default function ContactPage() {
 
         if (!response.ok) throw new Error('EmailJS could not send the message.');
         setStatus('sent');
-        event.currentTarget.reset();
+        formElement.reset();
         return;
       } catch (err) {
         setStatus('error');
