@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useChatHistory, useSendChatMessage } from '@/hooks/useChat';
+import { useChatHistory, useSendStreamingChatMessage } from '@/hooks/useChat';
+import { ChatMessage } from '@/types';
 
 const PROMPTS = [
   'Recommend a computer science session for this week',
@@ -13,19 +14,49 @@ const PROMPTS = [
 
 function AssistantContent() {
   const [message, setMessage] = useState('');
+  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
+  const [streamError, setStreamError] = useState('');
   const { data: history } = useChatHistory();
-  const sendMessage = useSendChatMessage();
+  const sendMessage = useSendStreamingChatMessage();
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
-  }, [history, sendMessage.isPending]);
+  }, [history, liveMessages, sendMessage.isPending]);
+
+  useEffect(() => {
+    setLiveMessages([]);
+  }, [history]);
 
   function send(text: string) {
     if (!text.trim()) return;
     setMessage('');
-    sendMessage.mutate(text);
+    setStreamError('');
+    const userMessage: ChatMessage = { role: 'user', content: text };
+    const assistantMessage: ChatMessage = { role: 'assistant', content: '' };
+    setLiveMessages([userMessage, assistantMessage]);
+
+    sendMessage.mutate(
+      {
+        message: text,
+        onToken: (token) => {
+          setLiveMessages((items) => {
+            const next = [...items];
+            const lastIndex = next.length - 1;
+            const last = next[lastIndex];
+            if (last?.role !== 'assistant') return next;
+            next[lastIndex] = { ...last, content: `${last.content}${token}` };
+            return next;
+          });
+        },
+      },
+      {
+        onError: (error) => setStreamError((error as Error).message),
+      }
+    );
   }
+
+  const messages = [...(history ?? []), ...liveMessages];
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-14 grid lg:grid-cols-[280px_1fr] gap-6">
@@ -46,12 +77,12 @@ function AssistantContent() {
 
       <section className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] min-h-[620px] flex flex-col overflow-hidden">
         <div ref={logRef} className="flex-1 overflow-y-auto p-5 space-y-3">
-          {(history ?? []).length === 0 && (
+          {messages.length === 0 && (
             <div className="text-sm text-ink/50 dark:text-white/40">
               Ask about StudyCo navigation, your hosted sessions, recommendations, or study planning.
             </div>
           )}
-          {(history ?? []).map((item, index) => (
+          {messages.map((item, index) => (
             <div
               key={item._id ?? index}
               className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
@@ -60,12 +91,10 @@ function AssistantContent() {
                   : 'bg-primary text-paper rounded-tr-none ml-auto'
               }`}
             >
-              {item.content}
+              {item.content || 'Thinking...'}
             </div>
           ))}
-          {sendMessage.isPending && (
-            <div className="bg-paperdim dark:bg-[#242938] rounded-2xl rounded-tl-none px-4 py-3 w-fit text-sm">Typing...</div>
-          )}
+          {streamError && <p className="text-sm text-coral">{streamError}</p>}
         </div>
 
         <form
@@ -83,7 +112,7 @@ function AssistantContent() {
           />
           <button className="px-4 py-3 rounded-xl bg-primary text-paper font-semibold flex items-center gap-2">
             <Send className="h-4 w-4" />
-            Send
+            {sendMessage.isPending ? 'Sending' : 'Send'}
           </button>
         </form>
       </section>
