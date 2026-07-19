@@ -2,17 +2,55 @@
 
 import { useState } from 'react';
 
-export default function ContactPage() {
-  const [sent, setSent] = useState(false);
+type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+export default function ContactPage() {
+  const [status, setStatus] = useState<SendState>('idle');
+  const [error, setError] = useState('');
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const name = String(form.get('name') ?? '');
     const email = String(form.get('email') ?? '');
     const message = String(form.get('message') ?? '');
+
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (serviceId && templateId && publicKey) {
+      setStatus('sending');
+      setError('');
+      try {
+        const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: serviceId,
+            template_id: templateId,
+            user_id: publicKey,
+            template_params: {
+              from_name: name,
+              reply_to: email,
+              message,
+            },
+          }),
+        });
+
+        if (!response.ok) throw new Error('EmailJS could not send the message.');
+        setStatus('sent');
+        event.currentTarget.reset();
+        return;
+      } catch (err) {
+        setStatus('error');
+        setError((err as Error).message);
+        return;
+      }
+    }
+
     window.location.href = `mailto:support@studyco.app?subject=${encodeURIComponent(`StudyCo contact from ${name}`)}&body=${encodeURIComponent(`${message}\n\nReply to: ${email}`)}`;
-    setSent(true);
+    setStatus('sent');
   }
 
   return (
@@ -23,8 +61,11 @@ export default function ContactPage() {
           <input name="name" required placeholder="Name" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           <input name="email" required type="email" placeholder="Email" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           <textarea name="message" required rows={4} placeholder="How can we help?" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <button className="px-6 py-3 rounded-xl bg-primary text-paper font-semibold">Send message</button>
-          {sent && <p className="text-sm text-primary dark:text-primary-light">Your email app opened with the message ready to send.</p>}
+          <button disabled={status === 'sending'} className="px-6 py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-60">
+            {status === 'sending' ? 'Sending...' : 'Send message'}
+          </button>
+          {status === 'sent' && <p className="text-sm text-primary dark:text-primary-light">Message ready or sent successfully.</p>}
+          {status === 'error' && <p className="text-sm text-coral">{error}</p>}
         </form>
       </div>
       <div className="space-y-5 text-sm">
