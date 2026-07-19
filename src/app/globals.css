@@ -36,3 +36,40 @@ html.dark .marker::before {
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
 }
+
+.studyco-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #35568a #151922;
+}
+
+.studyco-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.studyco-scroll::-webkit-scrollbar-track {
+  background: #151922;
+  border-radius: 999px;
+}
+
+.studyco-scroll::-webkit-scrollbar-thumb {
+  background: #35568a;
+  border: 2px solid #151922;
+  border-radius: 999px;
+}
+
+.studyco-scroll::-webkit-scrollbar-thumb:hover {
+  background: #4f76b8;
+}
+
+html:not(.dark) .studyco-scroll {
+  scrollbar-color: #8ba4cc #edf2f8;
+}
+
+html:not(.dark) .studyco-scroll::-webkit-scrollbar-track {
+  background: #edf2f8;
+}
+
+html:not(.dark) .studyco-scroll::-webkit-scrollbar-thumb {
+  background: #8ba4cc;
+  border-color: #edf2f8;
+}

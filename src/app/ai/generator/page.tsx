@@ -95,7 +95,7 @@ function GeneratorContent() {
             </button>
           </div>
         </div>
-        <div className="max-h-[520px] overflow-y-auto pr-3 text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">
+        <div className="studyco-scroll max-h-[520px] overflow-y-auto pr-3 text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">
           {generate.isError && <p className="text-coral text-sm">{(generate.error as Error).message}</p>}
           {cleanOutput || 'Enter a topic and generate study content.'}
         </div>

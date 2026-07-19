@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Bot, FileText, History, LayoutDashboard, NotebookPen, PlusCircle, Trash2, WandSparkles } from 'lucide-react';
+import { Bot, Calculator, Eye, FileText, History, LayoutDashboard, PlusCircle, Trash2, WandSparkles, X } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { useActivityHistory, useClearActivity, useDeleteActivity } from '@/hooks/useActivity';
+import { Activity } from '@/types';
+import { cleanAiText } from '@/lib/document-utils';
 
 const tools = [
   { href: '/items/add', label: 'Add Session', detail: 'Publish a new study session.', Icon: PlusCircle },
@@ -21,6 +24,7 @@ function DashboardContent() {
   const { data: activities, isLoading } = useActivityHistory();
   const deleteActivity = useDeleteActivity();
   const clearActivity = useClearActivity();
+  const [openActivity, setOpenActivity] = useState<Activity | null>(null);
 
   function deleteOne(id: string) {
     deleteActivity.mutate(id, {
@@ -69,6 +73,26 @@ function DashboardContent() {
         ))}
       </section>
 
+      <section className="mt-6">
+        <a
+          href="https://cgpa-calculator-diu-alpha.vercel.app/"
+          target="_blank"
+          rel="noreferrer"
+          className="flex flex-col gap-3 rounded-2xl border border-amber/40 bg-amber/10 p-5 hover:border-amber sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber text-ink">
+              <Calculator className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-semibold">Calculate your grades</h2>
+              <p className="text-sm text-ink/60 dark:text-white/50">Open your DIU CGPA calculator project.</p>
+            </div>
+          </div>
+          <span className="text-sm font-semibold text-primary dark:text-primary-light">Open calculator</span>
+        </a>
+      </section>
+
       <section className="mt-10 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29]">
         <div className="flex flex-col gap-3 border-b border-black/5 dark:border-white/10 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -104,18 +128,50 @@ function DashboardContent() {
                   {activity.type} / {new Date(activity.createdAt).toLocaleString()}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => deleteOne(activity._id)}
-                className="rounded-lg p-2 text-coral hover:bg-coral/10"
-                aria-label="Delete history item"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {typeof activity.metadata?.content === 'string' && (
+                  <button
+                    type="button"
+                    onClick={() => setOpenActivity(activity)}
+                    className="rounded-lg p-2 text-primary hover:bg-primary/10 dark:text-primary-light"
+                    aria-label="Open history item"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => deleteOne(activity._id)}
+                  className="rounded-lg p-2 text-coral hover:bg-coral/10"
+                  aria-label="Delete history item"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </section>
+
+      {openActivity && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-white p-6 shadow-2xl dark:bg-[#1B1F29]">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="font-mono text-xs uppercase text-coral">{openActivity.type}</p>
+                <h2 className="font-display text-2xl font-semibold mt-1">{openActivity.title}</h2>
+                {openActivity.detail && <p className="text-sm text-ink/60 dark:text-white/50 mt-1">{openActivity.detail}</p>}
+              </div>
+              <button type="button" onClick={() => setOpenActivity(null)} className="rounded-lg p-2 hover:bg-black/5 dark:hover:bg-white/10" aria-label="Close history item">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="studyco-scroll max-h-[65vh] overflow-y-auto pr-3 text-sm leading-relaxed text-ink/80 dark:text-white/70 whitespace-pre-line">
+              {cleanAiText(String(openActivity.metadata?.content ?? ''))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

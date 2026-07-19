@@ -79,7 +79,7 @@ function DocumentIntelligenceContent() {
               Download as docx
             </button>
           </div>
-          <div className="max-h-[520px] overflow-y-auto pr-3 text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">{cleanAnalysis}</div>
+          <div className="studyco-scroll max-h-[520px] overflow-y-auto pr-3 text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">{cleanAnalysis}</div>
         </div>
       )}
     </div>
