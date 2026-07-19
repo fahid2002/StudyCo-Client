@@ -1,11 +1,38 @@
 'use client';
 
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
 
-export function GoogleSignInButton({ onError }: { onError: (message: string) => void }) {
+interface GoogleSignInButtonProps {
+  mode: 'login' | 'register';
+  onError: (message: string) => void;
+  onExistingAccount?: () => void;
+}
+
+export function GoogleSignInButton({ mode, onError, onExistingAccount }: GoogleSignInButtonProps) {
   const { login } = useAuth();
+  const startGoogleLogin = useGoogleLogin({
+    flow: 'implicit',
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await api.post('/auth/google', {
+          accessToken: tokenResponse.access_token,
+          mode,
+        });
+        login(res.data.data.token, res.data.data.user);
+        window.location.href = '/';
+      } catch (err) {
+        const message = (err as Error).message;
+        if (mode === 'register' && message.toLowerCase().includes('already exists')) {
+          onExistingAccount?.();
+          return;
+        }
+        onError(message);
+      }
+    },
+    onError: () => onError('Google sign-in failed. Please try again.'),
+  });
 
   if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
     return (
@@ -20,22 +47,12 @@ export function GoogleSignInButton({ onError }: { onError: (message: string) => 
   }
 
   return (
-    <div className="flex justify-center">
-      <GoogleLogin
-        width="320"
-        onSuccess={async (credentialResponse) => {
-          try {
-            const idToken = credentialResponse.credential;
-            if (!idToken) throw new Error('Google did not return an identity token.');
-            const res = await api.post('/auth/google', { idToken });
-            login(res.data.data.token, res.data.data.user);
-            window.location.href = '/';
-          } catch (err) {
-            onError((err as Error).message);
-          }
-        }}
-        onError={() => onError('Google sign-in failed. Please try again.')}
-      />
-    </div>
+    <button
+      type="button"
+      onClick={() => startGoogleLogin()}
+      className="w-full py-3 rounded-xl border border-black/10 dark:border-white/15 font-semibold bg-white dark:bg-[#12151C] hover:border-primary"
+    >
+      Continue with Google
+    </button>
   );
 }

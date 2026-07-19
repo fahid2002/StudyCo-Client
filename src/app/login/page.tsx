@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,18 +81,30 @@ export default function LoginPage() {
           />
           {errors.password && <p className="text-xs text-coral mt-1">{errors.password}</p>}
         </div>
-        {serverError && <p className="text-xs text-coral">{serverError}</p>}
+        {(searchParams.get('message') || serverError) && (
+          <p className={`text-xs ${serverError ? 'text-coral' : 'text-primary dark:text-primary-light'}`}>
+            {serverError || searchParams.get('message')}
+          </p>
+        )}
         <button disabled={loading} className="w-full py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50">
           {loading ? 'Logging in...' : 'Log in'}
         </button>
         <button type="button" onClick={useDemoAccount} className="w-full py-3 rounded-xl border border-amber text-amber-light font-semibold">
           Use demo account
         </button>
-        <GoogleSignInButton onError={setServerError} />
+        <GoogleSignInButton mode="login" onError={setServerError} />
         <p className="text-sm text-center text-ink/60 dark:text-white/50">
           No account? <Link href="/register" className="font-semibold text-primary dark:text-primary-light">Sign up</Link>
         </p>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto px-4 py-16 text-center text-ink/50 dark:text-white/40">Loading login...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

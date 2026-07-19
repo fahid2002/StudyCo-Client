@@ -14,11 +14,13 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setNotice('');
     if (!name.trim()) { setError('Full name is required.'); return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError('Enter a valid email address.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
@@ -28,7 +30,15 @@ export default function RegisterPage() {
       login(res.data.data.token, res.data.data.user);
       router.push('/');
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error).message;
+      if (message.toLowerCase().includes('already exists')) {
+        setNotice('This email is already registered. Redirecting you to login...');
+        setTimeout(() => {
+          router.push('/login?message=This email is already registered. Please log in.');
+        }, 1400);
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -53,11 +63,22 @@ export default function RegisterPage() {
           <input value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} type="password"
             className="w-full mt-1 px-4 py-2.5 rounded-xl bg-paperdim dark:bg-[#12151C] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
+        {notice && <p className="text-xs text-primary dark:text-primary-light">{notice}</p>}
         {error && <p className="text-xs text-coral">{error}</p>}
         <button disabled={loading} className="w-full py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50">
           {loading ? 'Creating...' : 'Create account'}
         </button>
-        <GoogleSignInButton onError={setError} />
+        <GoogleSignInButton
+          mode="register"
+          onError={setError}
+          onExistingAccount={() => {
+            setError('');
+            setNotice('This Google email is already registered. Redirecting you to login...');
+            setTimeout(() => {
+              router.push('/login?message=This Google email is already registered. Please log in.');
+            }, 1400);
+          }}
+        />
         <p className="text-sm text-center text-ink/60 dark:text-white/50">
           Already have an account? <Link href="/login" className="font-semibold text-primary dark:text-primary-light">Log in</Link>
         </p>
