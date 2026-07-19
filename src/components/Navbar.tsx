@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Menu, Moon, Sun, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useTheme } from '@/lib/theme-context';
+import { StudyCoLogo } from './StudyCoLogo';
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -21,10 +22,7 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur bg-paper/90 dark:bg-[#12151C]/90 border-b border-black/10 dark:border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="w-8 h-8 rounded-lg bg-primary dark:bg-primary-light flex items-center justify-center text-paper dark:text-ink font-display font-bold text-sm">S</span>
-          <span className="font-display font-semibold text-lg tracking-tight">StudyCo</span>
-        </Link>
+        <StudyCoLogo />
 
         <div className="hidden lg:flex items-center gap-6 text-sm font-medium">
           <Link href="/" className="hover:text-primary dark:hover:text-primary-light">Home</Link>

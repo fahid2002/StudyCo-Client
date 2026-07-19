@@ -13,6 +13,7 @@ export default function ContactPage() {
     const form = new FormData(event.currentTarget);
     const name = String(form.get('name') ?? '');
     const email = String(form.get('email') ?? '');
+    const subject = `StudyCo contact from ${name}`;
     const message = String(form.get('message') ?? '');
 
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
@@ -31,8 +32,9 @@ export default function ContactPage() {
             template_id: templateId,
             user_id: publicKey,
             template_params: {
-              from_name: name,
-              reply_to: email,
+              name,
+              email,
+              subject,
               message,
             },
           }),
@@ -49,7 +51,7 @@ export default function ContactPage() {
       }
     }
 
-    window.location.href = `mailto:support@studyco.app?subject=${encodeURIComponent(`StudyCo contact from ${name}`)}&body=${encodeURIComponent(`${message}\n\nReply to: ${email}`)}`;
+    window.location.href = `mailto:support@studyco.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${message}\n\nReply to: ${email}`)}`;
     setStatus('sent');
   }
 

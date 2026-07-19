@@ -4,12 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/axios';
-import { useAuth } from '@/lib/auth-context';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,9 +24,11 @@ export default function RegisterPage() {
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true);
     try {
-      const res = await api.post('/auth/register', { name, email, password });
-      login(res.data.data.token, res.data.data.user);
-      router.push('/');
+      await api.post('/auth/register', { name, email, password });
+      setNotice('Account created. Redirecting you to login...');
+      setTimeout(() => {
+        router.push('/login?message=Account created successfully. Please log in.');
+      }, 1200);
     } catch (err) {
       const message = (err as Error).message;
       if (message.toLowerCase().includes('already exists')) {

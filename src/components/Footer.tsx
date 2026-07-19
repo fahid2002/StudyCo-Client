@@ -1,11 +1,15 @@
 import Link from 'next/link';
+import { StudyCoMark } from './StudyCoLogo';
 
 export function Footer() {
   return (
     <footer className="border-t border-black/10 dark:border-white/10 pt-14 pb-8 mt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-5 gap-8">
         <div className="lg:col-span-2">
-          <span className="font-display font-semibold text-lg">StudyCo</span>
+          <div className="flex items-center gap-2">
+            <StudyCoMark />
+            <span className="font-display font-semibold text-lg">StudyCo</span>
+          </div>
           <p className="text-sm text-ink/50 dark:text-white/40 mt-3 max-w-xs">
             Peer study sessions and AI study tools, in one place.
           </p>
