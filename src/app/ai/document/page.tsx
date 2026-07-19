@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { api } from '@/lib/axios';
 import { useToast } from '@/lib/toast-context';
+import { cleanAiText, downloadDocx } from '@/lib/document-utils';
 
 function DocumentIntelligenceContent() {
   const [file, setFile] = useState<File | null>(null);
@@ -12,6 +13,7 @@ function DocumentIntelligenceContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { showToast } = useToast();
+  const cleanAnalysis = analysis ? cleanAiText(analysis) : '';
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
@@ -37,16 +39,14 @@ function DocumentIntelligenceContent() {
     }
   }
 
-  function downloadAnalysis() {
-    if (!analysis) return;
-    const blob = new Blob([analysis], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${filename || 'studyco-document'}-summary.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast('Summary downloaded.', 'success');
+  async function downloadAnalysis() {
+    if (!cleanAnalysis) return;
+    await downloadDocx({
+      title: `StudyCo document analysis: ${filename || 'Uploaded document'}`,
+      body: cleanAnalysis,
+      filename: `${filename || 'studyco-document'}-summary`,
+    });
+    showToast('DOCX summary downloaded.', 'success');
   }
 
   return (
@@ -76,10 +76,10 @@ function DocumentIntelligenceContent() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40">Analysis</p>
             <button onClick={downloadAnalysis} className="rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary dark:text-primary-light">
-              Download summary
+              Download as docx
             </button>
           </div>
-          <div className="text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">{analysis}</div>
+          <div className="max-h-[520px] overflow-y-auto pr-3 text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">{cleanAnalysis}</div>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useGenerateContent } from '@/hooks/useGenerator';
 import { useToast } from '@/lib/toast-context';
+import { cleanAiText, downloadDocx } from '@/lib/document-utils';
 
 function GeneratorContent() {
   const [type, setType] = useState<'Study notes' | 'Summary' | 'Flashcards' | 'Practice quiz'>('Study notes');
@@ -11,6 +12,8 @@ function GeneratorContent() {
   const [length, setLength] = useState<'Short' | 'Medium' | 'Long'>('Medium');
   const generate = useGenerateContent();
   const { showToast } = useToast();
+  const output = generate.data?.output ?? '';
+  const cleanOutput = output ? cleanAiText(output) : '';
 
   function runGenerator() {
     if (!topic.trim()) {
@@ -24,6 +27,19 @@ function GeneratorContent() {
         onError: (error) => showToast((error as Error).message, 'error'),
       }
     );
+  }
+
+  async function downloadGeneratedDocx() {
+    if (!cleanOutput) {
+      showToast('Generate notes before downloading.', 'error');
+      return;
+    }
+    await downloadDocx({
+      title: `${type}: ${topic}`,
+      body: cleanOutput,
+      filename: `${topic}-${type}`,
+    });
+    showToast('DOCX downloaded successfully.', 'success');
   }
 
   return (
@@ -61,24 +77,27 @@ function GeneratorContent() {
       </div>
 
       <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-6 min-h-[320px]">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
           <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40">Output</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={runGenerator} className="text-xs font-semibold text-primary dark:text-primary-light">Regenerate</button>
             <button
               onClick={() => {
-                navigator.clipboard.writeText(generate.data?.output ?? '');
+                navigator.clipboard.writeText(cleanOutput);
                 showToast('Generated content copied.', 'success');
               }}
               className="text-xs font-semibold text-primary dark:text-primary-light"
             >
               Copy
             </button>
+            <button onClick={downloadGeneratedDocx} className="text-xs font-semibold text-primary dark:text-primary-light">
+              Download as docx
+            </button>
           </div>
         </div>
-        <div className="text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">
+        <div className="max-h-[520px] overflow-y-auto pr-3 text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">
           {generate.isError && <p className="text-coral text-sm">{(generate.error as Error).message}</p>}
-          {generate.data?.output ?? 'Enter a topic and generate study content.'}
+          {cleanOutput || 'Enter a topic and generate study content.'}
         </div>
       </div>
     </div>
