@@ -53,6 +53,15 @@ export interface ChatMessage {
   createdAt?: string;
 }
 
+export interface Activity {
+  _id: string;
+  type: 'auth' | 'session' | 'booking' | 'ai' | 'recommendation' | 'profile';
+  title: string;
+  detail?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
 export interface Recommendation {
   session: StudySession;
   reason: string;

@@ -3,6 +3,7 @@
 import { useGoogleLogin } from '@react-oauth/google';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/lib/toast-context';
 
 interface GoogleSignInButtonProps {
   mode: 'login' | 'register';
@@ -12,6 +13,7 @@ interface GoogleSignInButtonProps {
 
 export function GoogleSignInButton({ mode, onError, onExistingAccount }: GoogleSignInButtonProps) {
   const { login } = useAuth();
+  const { showToast } = useToast();
   const startGoogleLogin = useGoogleLogin({
     flow: 'implicit',
     onSuccess: async (tokenResponse) => {
@@ -20,8 +22,14 @@ export function GoogleSignInButton({ mode, onError, onExistingAccount }: GoogleS
           accessToken: tokenResponse.access_token,
           mode,
         });
+        if (mode === 'register') {
+          showToast('Google account created. Please log in now.', 'success');
+          window.location.href = '/login?message=Account created successfully. Please log in.';
+          return;
+        }
         login(res.data.data.token, res.data.data.user);
-        window.location.href = '/';
+        showToast('Google login successful.', 'success');
+        window.location.href = '/dashboard';
       } catch (err) {
         const message = (err as Error).message;
         if (mode === 'register' && message.toLowerCase().includes('already exists')) {

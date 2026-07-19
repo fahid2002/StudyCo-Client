@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useChatHistory, useSendChatMessage } from '@/hooks/useChat';
+import { useToast } from '@/lib/toast-context';
 
 const SUGGESTIONS = ['Find me a calculus session', 'How do I add a study session?', 'What does the AI generator do?'];
 
@@ -14,6 +15,7 @@ export function ChatWidget() {
   const { data: history } = useChatHistory();
   const sendMessage = useSendChatMessage();
   const logRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
@@ -24,7 +26,9 @@ export function ChatWidget() {
   function send(text: string) {
     if (!text.trim()) return;
     setInput('');
-    sendMessage.mutate(text);
+    sendMessage.mutate(text, {
+      onError: (error) => showToast((error as Error).message, 'error'),
+    });
   }
 
   return (

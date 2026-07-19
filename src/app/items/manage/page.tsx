@@ -5,14 +5,21 @@ import { useMySessions } from '@/hooks/useSessions';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import Link from 'next/link';
+import { useToast } from '@/lib/toast-context';
 
 function ManageContent() {
   const { data, isLoading } = useMySessions();
   const qc = useQueryClient();
+  const { showToast } = useToast();
 
   async function handleDelete(id: string) {
-    await api.delete(`/sessions/${id}`);
-    qc.invalidateQueries({ queryKey: ['my-sessions'] });
+    try {
+      await api.delete(`/sessions/${id}`);
+      qc.invalidateQueries({ queryKey: ['my-sessions'] });
+      showToast('Session deleted successfully.', 'success');
+    } catch (error) {
+      showToast((error as Error).message, 'error');
+    }
   }
 
   return (
@@ -24,7 +31,7 @@ function ManageContent() {
             <tr><th className="py-2">Title</th><th>Date</th><th>Status</th><th>Seats</th><th>Actions</th></tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={5} className="py-6 text-ink/40 dark:text-white/40">Loading…</td></tr>}
+            {isLoading && <tr><td colSpan={5} className="py-6 text-ink/40 dark:text-white/40">Loading...</td></tr>}
             {!isLoading && data?.length === 0 && <tr><td colSpan={5} className="py-6 text-ink/40 dark:text-white/40">You haven&apos;t hosted any sessions yet.</td></tr>}
             {data?.map((s) => (
               <tr key={s._id} className="border-t border-black/5 dark:border-white/10">
@@ -56,3 +63,4 @@ export default function ManageSessionsPage() {
     </ProtectedRoute>
   );
 }
+

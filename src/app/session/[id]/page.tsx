@@ -6,6 +6,7 @@ import { useSession } from '@/hooks/useSessions';
 import { SessionCard } from '@/components/SessionCard';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/lib/toast-context';
 
 type Tab = 'overview' | 'specs' | 'reviews' | 'related';
 
@@ -15,6 +16,7 @@ export default function SessionDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, refetch } = useSession(id);
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [tab, setTab] = useState<Tab>('overview');
   const [reserving, setReserving] = useState(false);
   const [error, setError] = useState('');
@@ -33,8 +35,11 @@ export default function SessionDetailsPage() {
     try {
       await api.post(`/sessions/${id}/reserve`);
       await refetch();
+      showToast(`Seat reserved for ${data?.session.title ?? 'this session'}.`, 'success');
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error).message;
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setReserving(false);
     }

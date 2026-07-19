@@ -5,6 +5,7 @@ import { Send } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useChatHistory, useSendStreamingChatMessage } from '@/hooks/useChat';
 import { ChatMessage } from '@/types';
+import { useToast } from '@/lib/toast-context';
 
 const PROMPTS = [
   'Recommend a computer science session for this week',
@@ -19,6 +20,7 @@ function AssistantContent() {
   const { data: history } = useChatHistory();
   const sendMessage = useSendStreamingChatMessage();
   const logRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
@@ -51,7 +53,12 @@ function AssistantContent() {
         },
       },
       {
-        onError: (error) => setStreamError((error as Error).message),
+        onSuccess: () => showToast('Assistant response saved to your history.', 'success'),
+        onError: (error) => {
+          const errorMessage = (error as Error).message;
+          setStreamError(errorMessage);
+          showToast(errorMessage, 'error');
+        },
       }
     );
   }

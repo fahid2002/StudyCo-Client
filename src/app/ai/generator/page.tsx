@@ -3,12 +3,28 @@
 import { useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useGenerateContent } from '@/hooks/useGenerator';
+import { useToast } from '@/lib/toast-context';
 
 function GeneratorContent() {
   const [type, setType] = useState<'Study notes' | 'Summary' | 'Flashcards' | 'Practice quiz'>('Study notes');
-  const [topic, setTopic] = useState("Newton's Laws of Motion");
+  const [topic, setTopic] = useState('');
   const [length, setLength] = useState<'Short' | 'Medium' | 'Long'>('Medium');
   const generate = useGenerateContent();
+  const { showToast } = useToast();
+
+  function runGenerator() {
+    if (!topic.trim()) {
+      showToast('Enter a study topic first.', 'error');
+      return;
+    }
+    generate.mutate(
+      { type, topic, length },
+      {
+        onSuccess: () => showToast('Study content generated successfully.', 'success'),
+        onError: (error) => showToast((error as Error).message, 'error'),
+      }
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-14 grid md:grid-cols-2 gap-8">
@@ -35,11 +51,11 @@ function GeneratorContent() {
               className="w-full accent-primary" />
           </div>
           <button
-            onClick={() => generate.mutate({ type, topic, length })}
+            onClick={runGenerator}
             disabled={generate.isPending}
             className="px-6 py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50"
           >
-            {generate.isPending ? 'Generating…' : 'Generate'}
+            {generate.isPending ? 'Generating...' : 'Generate'}
           </button>
         </div>
       </div>
@@ -48,9 +64,12 @@ function GeneratorContent() {
         <div className="flex items-center justify-between mb-3">
           <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40">Output</p>
           <div className="flex gap-2">
-            <button onClick={() => generate.mutate({ type, topic, length })} className="text-xs font-semibold text-primary dark:text-primary-light">Regenerate</button>
+            <button onClick={runGenerator} className="text-xs font-semibold text-primary dark:text-primary-light">Regenerate</button>
             <button
-              onClick={() => navigator.clipboard.writeText(generate.data?.output ?? '')}
+              onClick={() => {
+                navigator.clipboard.writeText(generate.data?.output ?? '');
+                showToast('Generated content copied.', 'success');
+              }}
               className="text-xs font-semibold text-primary dark:text-primary-light"
             >
               Copy
@@ -59,7 +78,7 @@ function GeneratorContent() {
         </div>
         <div className="text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">
           {generate.isError && <p className="text-coral text-sm">{(generate.error as Error).message}</p>}
-          {generate.data?.output ?? 'Generated content will appear here.'}
+          {generate.data?.output ?? 'Enter a topic and generate study content.'}
         </div>
       </div>
     </div>

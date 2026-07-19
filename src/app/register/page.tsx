@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/axios';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
+import { useToast } from '@/lib/toast-context';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +28,7 @@ export default function RegisterPage() {
     try {
       await api.post('/auth/register', { name, email, password });
       setNotice('Account created. Redirecting you to login...');
+      showToast('Account created. Please log in now.', 'success');
       setTimeout(() => {
         router.push('/login?message=Account created successfully. Please log in.');
       }, 1200);
@@ -33,11 +36,13 @@ export default function RegisterPage() {
       const message = (err as Error).message;
       if (message.toLowerCase().includes('already exists')) {
         setNotice('This email is already registered. Redirecting you to login...');
+        showToast('This email is already registered. Please log in.', 'info');
         setTimeout(() => {
           router.push('/login?message=This email is already registered. Please log in.');
         }, 1400);
       } else {
         setError(message);
+        showToast(message, 'error');
       }
     } finally {
       setLoading(false);
@@ -70,10 +75,14 @@ export default function RegisterPage() {
         </button>
         <GoogleSignInButton
           mode="register"
-          onError={setError}
+          onError={(message) => {
+            setError(message);
+            showToast(message, 'error');
+          }}
           onExistingAccount={() => {
             setError('');
             setNotice('This Google email is already registered. Redirecting you to login...');
+            showToast('This Google email is already registered. Please log in.', 'info');
             setTimeout(() => {
               router.push('/login?message=This Google email is already registered. Please log in.');
             }, 1400);

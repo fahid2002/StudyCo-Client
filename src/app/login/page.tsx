@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/lib/toast-context';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -33,9 +35,12 @@ function LoginForm() {
     try {
       const res = await api.post('/auth/login', { email, password });
       login(res.data.data.token, res.data.data.user);
-      router.push('/');
+      showToast('Login successful. Welcome back.', 'success');
+      router.push('/dashboard');
     } catch (err) {
-      setServerError((err as Error).message);
+      const message = (err as Error).message;
+      setServerError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -49,9 +54,12 @@ function LoginForm() {
     try {
       const res = await api.post('/auth/demo-login');
       login(res.data.data.token, res.data.data.user);
-      router.push('/');
+      showToast('Demo login successful.', 'success');
+      router.push('/dashboard');
     } catch (err) {
-      setServerError((err as Error).message);
+      const message = (err as Error).message;
+      setServerError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -92,7 +100,13 @@ function LoginForm() {
         <button type="button" onClick={useDemoAccount} className="w-full py-3 rounded-xl border border-amber text-amber-light font-semibold">
           Use demo account
         </button>
-        <GoogleSignInButton mode="login" onError={setServerError} />
+        <GoogleSignInButton
+          mode="login"
+          onError={(message) => {
+            setServerError(message);
+            showToast(message, 'error');
+          }}
+        />
         <p className="text-sm text-center text-ink/60 dark:text-white/50">
           No account? <Link href="/register" className="font-semibold text-primary dark:text-primary-light">Sign up</Link>
         </p>

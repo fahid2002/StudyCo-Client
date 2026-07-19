@@ -2,22 +2,22 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, Moon, Sun, X } from 'lucide-react';
+import { LogOut, Menu, Moon, Sun, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useTheme } from '@/lib/theme-context';
+import { useToast } from '@/lib/toast-context';
 import { StudyCoLogo } from './StudyCoLogo';
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const authedLinks = (
-    <>
-      {user && <Link href="/items/add" className="hover:text-primary dark:hover:text-primary-light">Add Session</Link>}
-      {user && <Link href="/items/manage" className="hover:text-primary dark:hover:text-primary-light">My Sessions</Link>}
-    </>
-  );
+  function handleLogout() {
+    logout();
+    showToast('Logged out successfully.', 'success');
+  }
 
   return (
     <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur bg-paper/90 dark:bg-[#12151C]/90 border-b border-black/10 dark:border-white/10">
@@ -28,7 +28,8 @@ export function Navbar() {
           <Link href="/" className="hover:text-primary dark:hover:text-primary-light">Home</Link>
           <Link href="/explore" className="hover:text-primary dark:hover:text-primary-light">Explore</Link>
           <Link href="/ai/assistant" className="hover:text-primary dark:hover:text-primary-light">AI Assistant</Link>
-          {authedLinks}
+          <Link href="/ai/generator" className="hover:text-primary dark:hover:text-primary-light">AI Notes Generator</Link>
+          {user && <Link href="/dashboard" className="hover:text-primary dark:hover:text-primary-light">Dashboard</Link>}
           <Link href="/about" className="hover:text-primary dark:hover:text-primary-light">About</Link>
           <Link href="/contact" className="hover:text-primary dark:hover:text-primary-light">Contact</Link>
         </div>
@@ -53,7 +54,9 @@ export function Navbar() {
               <span className="w-8 h-8 rounded-full bg-coral text-white flex items-center justify-center text-xs font-bold">
                 {user.name.slice(0, 2).toUpperCase()}
               </span>
-              <button onClick={logout} className="text-sm font-semibold px-3 py-2 hover:text-coral">Log out</button>
+              <button onClick={handleLogout} className="text-sm font-semibold px-3 py-2 hover:text-coral inline-flex items-center gap-1">
+                <LogOut className="h-4 w-4" /> Log out
+              </button>
             </div>
           )}
 
@@ -72,8 +75,8 @@ export function Navbar() {
           <Link href="/">Home</Link>
           <Link href="/explore">Explore</Link>
           <Link href="/ai/assistant">AI Assistant</Link>
-          {user && <Link href="/items/add">Add Session</Link>}
-          {user && <Link href="/items/manage">My Sessions</Link>}
+          <Link href="/ai/generator">AI Notes Generator</Link>
+          {user && <Link href="/dashboard">Dashboard</Link>}
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
           {!user ? (
@@ -82,7 +85,7 @@ export function Navbar() {
               <Link href="/register">Sign up</Link>
             </>
           ) : (
-            <button onClick={logout} className="text-left text-coral">Log out</button>
+            <button onClick={handleLogout} className="text-left text-coral">Log out</button>
           )}
         </div>
       )}

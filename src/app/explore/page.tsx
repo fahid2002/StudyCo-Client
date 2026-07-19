@@ -24,7 +24,7 @@ export default function ExplorePage() {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           type="text"
-          placeholder="Search sessions, subjects, hosts…"
+          placeholder="Search sessions, subjects, hosts..."
           className="flex-1 px-4 py-2.5 rounded-xl bg-paperdim dark:bg-[#12151C] text-sm focus:outline-none"
         />
         <select value={subject} onChange={(e) => { setSubject(e.target.value); setPage(1); }} className="px-3 py-2.5 rounded-xl bg-paperdim dark:bg-[#12151C] text-sm">

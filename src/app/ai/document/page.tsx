@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { api } from '@/lib/axios';
+import { useToast } from '@/lib/toast-context';
 
 function DocumentIntelligenceContent() {
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
+  const [filename, setFilename] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
@@ -23,11 +26,27 @@ function DocumentIntelligenceContent() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setAnalysis(res.data.data.analysis);
+      setFilename(res.data.data.filename);
+      showToast('Document analyzed successfully.', 'success');
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error).message;
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
+  }
+
+  function downloadAnalysis() {
+    if (!analysis) return;
+    const blob = new Blob([analysis], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filename || 'studyco-document'}-summary.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('Summary downloaded.', 'success');
   }
 
   return (
@@ -44,9 +63,9 @@ function DocumentIntelligenceContent() {
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="text-sm"
         />
-        <p className="text-xs text-ink/40 dark:text-white/40 mt-2">PDF, DOCX, or TXT — up to 10MB</p>
+        <p className="text-xs text-ink/40 dark:text-white/40 mt-2">PDF, DOCX, or TXT. Up to 10MB.</p>
         <button disabled={!file || loading} className="mt-4 px-6 py-2.5 rounded-xl bg-primary text-paper font-semibold text-sm disabled:opacity-50">
-          {loading ? 'Analyzing…' : 'Analyze document'}
+          {loading ? 'Analyzing...' : 'Analyze document'}
         </button>
       </form>
 
@@ -54,7 +73,12 @@ function DocumentIntelligenceContent() {
 
       {analysis && (
         <div className="mt-8 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-6">
-          <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40 mb-3">Analysis</p>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40">Analysis</p>
+            <button onClick={downloadAnalysis} className="rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary dark:text-primary-light">
+              Download summary
+            </button>
+          </div>
           <div className="text-sm leading-relaxed whitespace-pre-line text-ink/80 dark:text-white/70">{analysis}</div>
         </div>
       )}
@@ -69,3 +93,4 @@ export default function DocumentIntelligencePage() {
     </ProtectedRoute>
   );
 }
+

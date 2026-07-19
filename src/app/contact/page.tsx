@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useToast } from '@/lib/toast-context';
 
 type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
 export default function ContactPage() {
   const [status, setStatus] = useState<SendState>('idle');
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,17 +45,20 @@ export default function ContactPage() {
 
         if (!response.ok) throw new Error('EmailJS could not send the message.');
         setStatus('sent');
+        showToast('Message sent successfully.', 'success');
         formElement.reset();
         return;
       } catch (err) {
         setStatus('error');
         setError((err as Error).message);
+        showToast((err as Error).message, 'error');
         return;
       }
     }
 
     window.location.href = `mailto:support@studyco.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${message}\n\nReply to: ${email}`)}`;
     setStatus('sent');
+    showToast('Email app opened with your message.', 'info');
   }
 
   return (

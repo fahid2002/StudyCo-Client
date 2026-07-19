@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { api } from '@/lib/axios';
+import { useToast } from '@/lib/toast-context';
 
 const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'Business', 'Test Prep'];
 
 function AddSessionForm() {
-  const router = useRouter();
+  const { showToast } = useToast();
   const [form, setForm] = useState({
     title: '', shortDescription: '', fullDescription: '',
     price: '', date: '', level: 'Beginner', subject: 'Mathematics', mode: 'Online', imageUrl: '',
@@ -27,9 +27,12 @@ function AddSessionForm() {
     try {
       await api.post('/sessions', { ...form, price: Number(form.price) });
       setSuccess(true);
+      showToast('Session published successfully.', 'success');
       setForm({ title: '', shortDescription: '', fullDescription: '', price: '', date: '', level: 'Beginner', subject: 'Mathematics', mode: 'Online', imageUrl: '' });
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error).message;
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -95,7 +98,7 @@ function AddSessionForm() {
         <div>
           <label className="text-sm font-medium">Cover image URL (optional)</label>
           <input type="url" value={form.imageUrl} onChange={(e) => update('imageUrl', e.target.value)}
-            placeholder="https://…"
+            placeholder="https://..."
             className="w-full mt-1 px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           {form.imageUrl && (
             <div className="mt-3 h-32 rounded-xl bg-cover bg-center border border-black/10 dark:border-white/10" style={{ backgroundImage: `url(${form.imageUrl})` }} />
@@ -103,9 +106,9 @@ function AddSessionForm() {
         </div>
         {error && <p className="text-sm text-coral">{error}</p>}
         <button disabled={loading} className="px-6 py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50">
-          {loading ? 'Publishing…' : 'Publish session'}
+          {loading ? 'Publishing...' : 'Publish session'}
         </button>
-        {success && <p className="text-sm text-primary dark:text-primary-light">Session published — it now appears in Manage sessions.</p>}
+        {success && <p className="text-sm text-primary dark:text-primary-light">Session published. It now appears in My Sessions.</p>}
       </form>
     </div>
   );
@@ -118,3 +121,4 @@ export default function AddSessionPage() {
     </ProtectedRoute>
   );
 }
+

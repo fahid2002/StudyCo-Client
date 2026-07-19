@@ -4,14 +4,22 @@ import { useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useRecommendations, useRecommendationFeedback } from '@/hooks/useRecommendations';
 import { SessionCard } from '@/components/SessionCard';
+import { useToast } from '@/lib/toast-context';
 
 function RecommendationsContent() {
   const { data, isLoading } = useRecommendations();
   const feedback = useRecommendationFeedback();
   const [feedbackCount, setFeedbackCount] = useState(0);
+  const { showToast } = useToast();
 
   function vote(sessionId: string, v: 'up' | 'down') {
-    feedback.mutate({ sessionId, vote: v });
+    feedback.mutate(
+      { sessionId, vote: v },
+      {
+        onSuccess: () => showToast('Recommendation feedback saved.', 'success'),
+        onError: (error) => showToast((error as Error).message, 'error'),
+      }
+    );
     setFeedbackCount((c) => c + 1);
   }
 
@@ -22,7 +30,7 @@ function RecommendationsContent() {
         Based on your saved interests and how you&apos;ve rated past recommendations.
       </p>
 
-      {isLoading && <p className="text-ink/40 dark:text-white/40 mt-8">Loading recommendations…</p>}
+      {isLoading && <p className="text-ink/40 dark:text-white/40 mt-8">Loading recommendations...</p>}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-8">
         {data?.map(({ session, reason }) => (
@@ -32,8 +40,8 @@ function RecommendationsContent() {
             </div>
             <SessionCard session={session} />
             <div className="flex gap-2 p-4 pt-0">
-              <button onClick={() => vote(session._id, 'up')} className="flex-1 py-1.5 rounded-lg border border-black/10 dark:border-white/15 text-xs">👍 Good match</button>
-              <button onClick={() => vote(session._id, 'down')} className="flex-1 py-1.5 rounded-lg border border-black/10 dark:border-white/15 text-xs">👎 Not for me</button>
+              <button onClick={() => vote(session._id, 'up')} className="flex-1 py-1.5 rounded-lg border border-black/10 dark:border-white/15 text-xs">Good match</button>
+              <button onClick={() => vote(session._id, 'down')} className="flex-1 py-1.5 rounded-lg border border-black/10 dark:border-white/15 text-xs">Not for me</button>
             </div>
           </div>
         ))}
@@ -41,7 +49,7 @@ function RecommendationsContent() {
 
       {feedbackCount > 0 && (
         <p className="text-xs font-mono text-ink/40 dark:text-white/40 mt-6 text-center">
-          Refining recommendations… {feedbackCount} response{feedbackCount !== 1 ? 's' : ''} recorded this session.
+          Refining recommendations... {feedbackCount} response{feedbackCount !== 1 ? 's' : ''} recorded this session.
         </p>
       )}
     </div>
@@ -55,3 +63,4 @@ export default function RecommendationsPage() {
     </ProtectedRoute>
   );
 }
+

@@ -3,6 +3,7 @@
 import { QueryProvider } from '@/lib/query-provider';
 import { AuthProvider } from '@/lib/auth-context';
 import { ThemeProvider } from '@/lib/theme-context';
+import { ToastProvider } from '@/lib/toast-context';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -10,7 +11,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const app = (
     <QueryProvider>
       <AuthProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </AuthProvider>
     </QueryProvider>
   );

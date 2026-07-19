@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Bot, CalendarCheck, FileText, Search, Sparkles, Users } from 'lucide-react';
+import { ArrowRight, Bot, CalendarCheck, FileText, Search, Sparkles, Upload, Users } from 'lucide-react';
 import { useSessions } from '@/hooks/useSessions';
 import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
 import { SessionStatsChart } from '@/components/SessionStatsChart';
@@ -19,6 +19,7 @@ export default function HomePage() {
   const { data, isLoading } = useSessions({ sort: 'rating', limit: 100, page: 1 });
   const sessions = data?.data ?? [];
   const featuredSessions = sessions.slice(0, 4);
+  const heroSession = featuredSessions[0];
   const totalSeats = sessions.reduce((sum, session) => sum + Math.max(0, session.seatsTotal - session.seatsReserved), 0);
   const subjects = new Set(sessions.map((session) => session.subject)).size;
   const averageRating = sessions.length
@@ -47,9 +48,13 @@ export default function HomePage() {
         </div>
         <div className="space-y-5">
           <div className="rounded-2xl bg-primary dark:bg-primary-dark text-paper p-6 shadow-xl">
-            <p className="font-mono text-[11px] opacity-70">LIVE SESSION</p>
-            <h3 className="font-display text-2xl mt-1">Linear Algebra Study Circle</h3>
-            <p className="text-sm opacity-80 mt-2">Small-group problem solving with AI-generated recap notes after the session.</p>
+            <p className="font-mono text-[11px] opacity-70">FEATURED SESSION</p>
+            <h3 className="font-display text-2xl mt-1">{heroSession?.title ?? 'Loading session...'}</h3>
+            <p className="text-sm opacity-80 mt-2">
+              {heroSession
+                ? `${heroSession.subject} / ${heroSession.mode} / ${heroSession.price === 0 ? 'Free' : `$${heroSession.price}`}`
+                : 'Real session data is loading from MongoDB.'}
+            </p>
           </div>
           <div className="rounded-2xl bg-amber text-ink p-6 shadow-xl ml-8">
             <p className="font-mono text-[11px] opacity-70">AI ASSISTANT</p>
@@ -64,11 +69,12 @@ export default function HomePage() {
             <p className="font-mono text-xs uppercase tracking-widest text-coral mb-3">What StudyCo does</p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold">Three AI tools built around real studying</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               [FileText, 'AI notes generator', 'Create notes, summaries, flashcards, or practice quizzes from a topic and chosen length.', '/ai/generator'],
               [Sparkles, 'Smart recommendations', 'Get session matches that adapt to your interests and feedback over time.', '/ai/recommendations'],
               [Bot, 'Context assistant', 'Ask follow-up questions about the app, your hosted sessions, and study planning.', '/ai/assistant'],
+              [Upload, 'AI document intelligence', 'Upload PDF, DOCX, or TXT notes and download an AI summary with action items.', '/ai/document'],
             ].map(([Icon, title, text, href]) => (
               <div key={String(title)} className="rounded-2xl p-6 bg-white dark:bg-[#1B1F29] border border-black/5 dark:border-white/10">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary dark:text-primary-light flex items-center justify-center mb-4">
