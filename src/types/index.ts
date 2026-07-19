@@ -62,6 +62,38 @@ export interface Activity {
   createdAt: string;
 }
 
+export interface SavedNote {
+  _id: string;
+  title: string;
+  folder: string;
+  content: string;
+  source?: string;
+  createdAt: string;
+}
+
+export interface Bookmark {
+  _id: string;
+  session: StudySession;
+  createdAt: string;
+}
+
+export interface TimetableItem {
+  _id: string;
+  title: string;
+  subject: string;
+  startAt: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface QuizScore {
+  _id: string;
+  topic: string;
+  score: number;
+  total: number;
+  createdAt: string;
+}
+
 export interface Recommendation {
   session: StudySession;
   reason: string;

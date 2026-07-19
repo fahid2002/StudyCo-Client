@@ -5,13 +5,17 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useGenerateContent } from '@/hooks/useGenerator';
 import { useToast } from '@/lib/toast-context';
 import { cleanAiText, downloadDocx } from '@/lib/document-utils';
+import { useCreateNote } from '@/hooks/useStudyTools';
+import { useRouter } from 'next/navigation';
 
 function GeneratorContent() {
   const [type, setType] = useState<'Study notes' | 'Summary' | 'Flashcards' | 'Practice quiz'>('Study notes');
   const [topic, setTopic] = useState('');
   const [length, setLength] = useState<'Short' | 'Medium' | 'Long'>('Medium');
   const generate = useGenerateContent();
+  const createNote = useCreateNote();
   const { showToast } = useToast();
+  const router = useRouter();
   const output = generate.data?.output ?? '';
   const cleanOutput = output ? cleanAiText(output) : '';
 
@@ -29,6 +33,20 @@ function GeneratorContent() {
     );
   }
 
+  function explainSimply() {
+    if (!topic.trim()) {
+      showToast('Enter a study topic first.', 'error');
+      return;
+    }
+    generate.mutate(
+      { type: 'Summary', topic: `Explain simply: ${topic}`, length: 'Short' },
+      {
+        onSuccess: () => showToast('Simple explanation generated.', 'success'),
+        onError: (error) => showToast((error as Error).message, 'error'),
+      }
+    );
+  }
+
   async function downloadGeneratedDocx() {
     if (!cleanOutput) {
       showToast('Generate notes before downloading.', 'error');
@@ -40,6 +58,23 @@ function GeneratorContent() {
       filename: `${topic}-${type}`,
     });
     showToast('DOCX downloaded successfully.', 'success');
+  }
+
+  function saveGeneratedNote(next?: string) {
+    if (!cleanOutput) {
+      showToast('Generate notes before saving.', 'error');
+      return;
+    }
+    createNote.mutate(
+      { title: `${type}: ${topic}`, folder: type, content: cleanOutput, source: 'AI Notes Generator' },
+      {
+        onSuccess: () => {
+          showToast('Note saved to your library.', 'success');
+          if (next) router.push(next);
+        },
+        onError: (error) => showToast((error as Error).message, 'error'),
+      }
+    );
   }
 
   return (
@@ -92,6 +127,21 @@ function GeneratorContent() {
             </button>
             <button onClick={downloadGeneratedDocx} className="text-xs font-semibold text-primary dark:text-primary-light">
               Download as docx
+            </button>
+            <button onClick={() => saveGeneratedNote('/notes')} className="text-xs font-semibold text-primary dark:text-primary-light">
+              Save to Library
+            </button>
+            <button onClick={() => saveGeneratedNote('/flashcards')} className="text-xs font-semibold text-primary dark:text-primary-light">
+              Practice Flashcards
+            </button>
+            <button onClick={() => saveGeneratedNote('/quiz')} className="text-xs font-semibold text-primary dark:text-primary-light">
+              Start Quiz
+            </button>
+            <button
+              onClick={explainSimply}
+              className="text-xs font-semibold text-primary dark:text-primary-light"
+            >
+              Explain Simply
             </button>
           </div>
         </div>

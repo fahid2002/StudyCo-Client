@@ -11,6 +11,7 @@ const PROMPTS = [
   'Recommend a computer science session for this week',
   'What can I do from the manage sessions page?',
   'Help me prepare for my next hosted session',
+  'Explain my current study topic in simple words',
 ];
 
 function AssistantContent() {

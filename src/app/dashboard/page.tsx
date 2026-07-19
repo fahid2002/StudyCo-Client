@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Bot, Calculator, Eye, FileText, History, LayoutDashboard, PlusCircle, Trash2, WandSparkles, X } from 'lucide-react';
+import { Bot, Calculator, CalendarDays, Eye, FileText, History, LayoutDashboard, Library, ListChecks, PlusCircle, Star, Trash2, WandSparkles, X } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
@@ -13,6 +13,11 @@ import { cleanAiText } from '@/lib/document-utils';
 const tools = [
   { href: '/items/add', label: 'Add Session', detail: 'Publish a new study session.', Icon: PlusCircle },
   { href: '/items/manage', label: 'My Sessions', detail: 'View and delete sessions you host.', Icon: LayoutDashboard },
+  { href: '/notes', label: 'Saved Notes', detail: 'Search saved notes by title, content, or folder.', Icon: Library },
+  { href: '/flashcards', label: 'Flashcards', detail: 'Practice flashcards from saved notes.', Icon: FileText },
+  { href: '/quiz', label: 'Quiz Practice', detail: 'Practice and track quiz scores.', Icon: ListChecks },
+  { href: '/timetable', label: 'Study Timetable', detail: 'Plan study tasks and deadlines.', Icon: CalendarDays },
+  { href: '/bookmarks', label: 'Bookmarks', detail: 'Review sessions you saved.', Icon: Star },
   { href: '/ai/assistant', label: 'AI Assistant', detail: 'Ask contextual study and app questions.', Icon: Bot },
   { href: '/ai/generator', label: 'AI Notes Generator', detail: 'Create notes, flashcards, summaries, and quizzes.', Icon: WandSparkles },
   { href: '/ai/document', label: 'AI Document', detail: 'Analyze PDFs, DOCX files, and TXT notes.', Icon: FileText },

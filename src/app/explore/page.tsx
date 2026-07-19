@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useSessions } from '@/hooks/useSessions';
 import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
+import { useBookmarks } from '@/hooks/useStudyTools';
+import { useAuth } from '@/lib/auth-context';
 
 const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'Business', 'Test Prep'];
 
@@ -12,8 +14,13 @@ export default function ExplorePage() {
   const [mode, setMode] = useState('');
   const [sort, setSort] = useState<'newest' | 'rating' | 'price'>('newest');
   const [page, setPage] = useState(1);
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
+  const { user } = useAuth();
 
   const { data, isLoading } = useSessions({ search, subject, mode, sort, page, limit: 8 });
+  const { data: bookmarks } = useBookmarks(!!user);
+  const bookmarkedIds = new Set((bookmarks ?? []).map((item) => item.session._id));
+  const sessions = bookmarkedOnly ? data?.data.filter((item) => bookmarkedIds.has(item._id)) : data?.data;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -41,6 +48,10 @@ export default function ExplorePage() {
           <option value="rating">Sort: Highest rated</option>
           <option value="price">Sort: Price, low to high</option>
         </select>
+        <label className="flex items-center gap-2 rounded-xl bg-paperdim dark:bg-[#12151C] px-3 py-2.5 text-sm">
+          <input type="checkbox" checked={bookmarkedOnly} onChange={(e) => setBookmarkedOnly(e.target.checked)} disabled={!user} className="accent-primary" />
+          Bookmarked only
+        </label>
       </div>
 
       <p className="text-sm text-ink/50 dark:text-white/40 font-mono mt-4">
@@ -50,8 +61,8 @@ export default function ExplorePage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-4 min-h-[300px]">
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => <SessionCardSkeleton key={i} />)
-          : data?.data.length
-          ? data.data.map((s) => <SessionCard key={s._id} session={s} />)
+          : sessions?.length
+          ? sessions.map((s) => <SessionCard key={s._id} session={s} />)
           : (
             <div className="col-span-full text-center py-16 text-ink/40 dark:text-white/40">
               No sessions match those filters yet. Try widening your search.

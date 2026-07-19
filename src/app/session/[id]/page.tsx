@@ -7,6 +7,8 @@ import { SessionCard } from '@/components/SessionCard';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
+import { downloadDocx } from '@/lib/document-utils';
+import { useToggleBookmark } from '@/hooks/useStudyTools';
 
 type Tab = 'overview' | 'specs' | 'reviews' | 'related';
 
@@ -17,6 +19,7 @@ export default function SessionDetailsPage() {
   const { data, isLoading, refetch } = useSession(id);
   const { user } = useAuth();
   const { showToast } = useToast();
+  const bookmark = useToggleBookmark();
   const [tab, setTab] = useState<Tab>('overview');
   const [reserving, setReserving] = useState(false);
   const [error, setError] = useState('');
@@ -43,6 +46,28 @@ export default function SessionDetailsPage() {
     } finally {
       setReserving(false);
     }
+  }
+
+  async function downloadRecap() {
+    await downloadDocx({
+      title: `Session recap: ${session.title}`,
+      filename: `${session.title}-recap`,
+      body: `${session.title}
+
+Overview
+${session.fullDescription}
+
+Key information
+Subject: ${session.subject}
+Format: ${session.mode}
+Level: ${session.level}
+Date: ${new Date(session.date).toLocaleString()}
+Price: ${session.price === 0 ? 'Free' : `$${session.price}`}
+Rating: ${session.ratingAverage.toFixed(1)} (${session.ratingCount} reviews)
+Seats: ${session.seatsReserved}/${session.seatsTotal}
+`,
+    });
+    showToast('Session recap downloaded.', 'success');
   }
 
   const tabs: { key: Tab; label: string }[] = [
@@ -115,6 +140,21 @@ export default function SessionDetailsPage() {
           className="w-full mt-5 py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50"
         >
           {session.seatsReserved >= session.seatsTotal ? 'Session full' : reserving ? 'Reserving...' : 'Reserve a seat'}
+        </button>
+        <button
+          onClick={() => bookmark.mutate(session._id, {
+            onSuccess: (data) => showToast(data.bookmarked ? 'Session bookmarked.' : 'Bookmark removed.', 'success'),
+            onError: (error) => showToast((error as Error).message, 'error'),
+          })}
+          className="w-full mt-3 py-3 rounded-xl border border-primary text-primary dark:text-primary-light font-semibold"
+        >
+          Bookmark session
+        </button>
+        <button
+          onClick={downloadRecap}
+          className="w-full mt-3 py-3 rounded-xl border border-black/10 dark:border-white/15 font-semibold"
+        >
+          Download recap DOCX
         </button>
         {error && <p className="text-xs text-coral mt-3">{error}</p>}
         <p className="text-xs text-center text-ink/40 dark:text-white/40 mt-2">
