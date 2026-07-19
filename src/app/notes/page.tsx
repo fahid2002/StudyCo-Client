@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useDeleteNote, useSavedNotes } from '@/hooks/useStudyTools';
-import { cleanAiText } from '@/lib/document-utils';
+import { cleanAiText, downloadDocx } from '@/lib/document-utils';
 import { useToast } from '@/lib/toast-context';
 
 function NotesContent() {
@@ -16,6 +16,16 @@ function NotesContent() {
   const { showToast } = useToast();
   const folders = useMemo(() => Array.from(new Set((notes ?? []).map((note) => note.folder))).sort(), [notes]);
   const openNote = notes?.find((note) => note._id === openId);
+
+  async function downloadOpenNote() {
+    if (!openNote) return;
+    await downloadDocx({
+      title: openNote.title,
+      body: openNote.content,
+      filename: openNote.title,
+    });
+    showToast('Saved note downloaded as DOCX.', 'success');
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -50,8 +60,19 @@ function NotesContent() {
         <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-6">
           {openNote ? (
             <>
-              <p className="font-mono text-xs uppercase text-coral">{openNote.folder}</p>
-              <h2 className="font-display text-2xl font-semibold mt-1">{openNote.title}</h2>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="font-mono text-xs uppercase text-coral">{openNote.folder}</p>
+                  <h2 className="font-display text-2xl font-semibold mt-1">{openNote.title}</h2>
+                </div>
+                <button
+                  onClick={downloadOpenNote}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary dark:text-primary-light"
+                >
+                  <Download className="h-4 w-4" />
+                  Download DOCX
+                </button>
+              </div>
               <div className="studyco-scroll mt-5 max-h-[65vh] overflow-y-auto pr-3 whitespace-pre-line text-sm leading-relaxed text-ink/80 dark:text-white/70">{cleanAiText(openNote.content)}</div>
             </>
           ) : (

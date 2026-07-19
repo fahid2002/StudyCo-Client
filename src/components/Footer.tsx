@@ -40,7 +40,7 @@ export function Footer() {
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
             <a href="https://github.com/fahid2002/StudyCo-Client" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="https://www.linkedin.com/in/fahid-hasan/" target="_blank" rel="noreferrer">LinkedIn</a>
           </div>
         </div>
       </div>

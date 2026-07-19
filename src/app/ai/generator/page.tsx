@@ -128,7 +128,7 @@ function GeneratorContent() {
             <button onClick={downloadGeneratedDocx} className="text-xs font-semibold text-primary dark:text-primary-light">
               Download as docx
             </button>
-            <button onClick={() => saveGeneratedNote('/notes')} className="text-xs font-semibold text-primary dark:text-primary-light">
+            <button onClick={() => saveGeneratedNote()} className="text-xs font-semibold text-primary dark:text-primary-light">
               Save to Library
             </button>
             <button onClick={() => saveGeneratedNote('/flashcards')} className="text-xs font-semibold text-primary dark:text-primary-light">

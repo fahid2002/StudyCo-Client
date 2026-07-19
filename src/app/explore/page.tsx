@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSessions } from '@/hooks/useSessions';
 import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
 import { useBookmarks } from '@/hooks/useStudyTools';
@@ -8,9 +9,10 @@ import { useAuth } from '@/lib/auth-context';
 
 const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'Business', 'Test Prep'];
 
-export default function ExplorePage() {
+function ExploreContent() {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
-  const [subject, setSubject] = useState('');
+  const [subject, setSubject] = useState(searchParams.get('subject') ?? '');
   const [mode, setMode] = useState('');
   const [sort, setSort] = useState<'newest' | 'rating' | 'price'>('newest');
   const [page, setPage] = useState(1);
@@ -86,5 +88,13 @@ export default function ExplorePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-sm text-ink/50 dark:text-white/40">Loading sessions...</div>}>
+      <ExploreContent />
+    </Suspense>
   );
 }

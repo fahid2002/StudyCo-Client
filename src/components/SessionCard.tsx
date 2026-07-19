@@ -45,14 +45,16 @@ export function SessionCard({ session }: { session: StudySession }) {
         <h3 className="font-display font-semibold mt-1 leading-snug">{session.title}</h3>
         <p className="text-sm text-ink/60 dark:text-white/50 mt-2 line-clamp-2">{session.shortDescription}</p>
         <p className="text-xs text-ink/50 dark:text-white/40 mt-2">Hosted by {hostName}</p>
-        <div className="flex items-center justify-between mt-3 text-sm">
-          <span className="font-semibold">{session.price === 0 ? 'Free' : `$${session.price}`}</span>
-          <span className="font-mono text-xs">Rating {session.ratingAverage.toFixed(1)} ({session.ratingCount})</span>
+        <div className="mt-auto pt-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-semibold">{session.price === 0 ? 'Free' : `$${session.price}`}</span>
+            <span className="font-mono text-xs">Rating {session.ratingAverage.toFixed(1)} ({session.ratingCount})</span>
+          </div>
+          <p className="text-xs text-ink/40 dark:text-white/40 mt-1">{new Date(session.date).toLocaleString()}</p>
         </div>
-        <p className="text-xs text-ink/40 dark:text-white/40 mt-1">{new Date(session.date).toLocaleString()}</p>
         <Link
           href={`/session/${session._id}`}
-          className="mt-auto text-center text-sm font-semibold py-2 rounded-lg border border-primary text-primary dark:text-primary-light dark:border-primary-light"
+          className="mt-3 text-center text-sm font-semibold py-2 rounded-lg border border-primary text-primary dark:text-primary-light dark:border-primary-light"
         >
           View details
         </Link>

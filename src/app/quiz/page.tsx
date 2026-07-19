@@ -22,9 +22,17 @@ function QuizContent() {
   const { showToast } = useToast();
   const [noteId, setNoteId] = useState('');
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
+  const [known, setKnown] = useState<Record<number, boolean>>({});
   const [score, setScore] = useState(0);
   const note = notes?.find((item) => item._id === noteId) ?? notes?.[0];
   const questions = useMemo(() => makeQuestions(note?.content ?? ''), [note]);
+
+  function markKnown(index: number) {
+    if (known[index]) return;
+    setKnown((value) => ({ ...value, [index]: true }));
+    setScore((value) => Math.min(questions.length, value + 1));
+    showToast(`Marked question ${index + 1} as known.`, 'success');
+  }
 
   function finish() {
     saveScore.mutate({ topic: note?.title ?? 'Practice quiz', score, total: questions.length }, {
@@ -36,17 +44,28 @@ function QuizContent() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       <h1 className="font-display text-3xl font-semibold">Quiz practice</h1>
-      <select value={note?._id ?? ''} onChange={(e) => { setNoteId(e.target.value); setRevealed({}); setScore(0); }} className="mt-6 w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] px-4 py-2.5 text-sm">
+      <select value={note?._id ?? ''} onChange={(e) => { setNoteId(e.target.value); setRevealed({}); setKnown({}); setScore(0); }} className="mt-6 w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] px-4 py-2.5 text-sm">
         {(notes ?? []).map((item) => <option key={item._id} value={item._id}>{item.title}</option>)}
       </select>
       <div className="mt-6 space-y-4">
+        {(notes ?? []).length === 0 && (
+          <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-5 text-sm text-ink/60 dark:text-white/50">
+            Save a generated note first, then come back here to practice a quiz.
+          </div>
+        )}
         {questions.map((item, index) => (
           <div key={index} className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-5">
             <p className="font-semibold">{item.question}</p>
             {revealed[index] && <p className="mt-3 text-sm text-ink/70 dark:text-white/60">{item.answer}</p>}
             <div className="mt-4 flex gap-2">
               <button onClick={() => setRevealed((v) => ({ ...v, [index]: true }))} className="rounded-lg border border-black/10 dark:border-white/15 px-3 py-1.5 text-xs font-semibold">Show answer</button>
-              <button onClick={() => setScore((s) => Math.min(questions.length, s + 1))} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-paper">I knew this</button>
+              <button
+                onClick={() => markKnown(index)}
+                disabled={known[index]}
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-paper disabled:opacity-60"
+              >
+                {known[index] ? 'Marked known' : 'I knew this'}
+              </button>
             </div>
           </div>
         ))}
