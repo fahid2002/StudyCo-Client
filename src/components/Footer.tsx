@@ -9,6 +9,10 @@ export function Footer() {
           <p className="text-sm text-ink/50 dark:text-white/40 mt-3 max-w-xs">
             Peer study sessions and AI study tools, in one place.
           </p>
+          <div className="text-sm text-ink/50 dark:text-white/40 mt-4 space-y-1">
+            <p>Dhaka, Bangladesh</p>
+            <a href="mailto:support@studyco.app" className="block hover:text-primary dark:hover:text-primary-light">support@studyco.app</a>
+          </div>
         </div>
         <div>
           <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40 mb-3">Product</p>
@@ -16,6 +20,7 @@ export function Footer() {
             <Link href="/explore">Explore sessions</Link>
             <Link href="/ai/generator">Notes generator</Link>
             <Link href="/ai/recommendations">Recommendations</Link>
+            <Link href="/ai/assistant">Assistant</Link>
           </div>
         </div>
         <div>
@@ -30,11 +35,12 @@ export function Footer() {
           <div className="flex flex-col gap-2 text-sm">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
+            <a href="https://github.com/fahid2002/StudyCo-Client" target="_blank" rel="noreferrer">GitHub</a>
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-black/5 dark:border-white/5 text-xs text-ink/40 dark:text-white/40">
-        © {new Date().getFullYear()} StudyCo. All rights reserved.
+        Copyright {new Date().getFullYear()} StudyCo. All rights reserved.
       </div>
     </footer>
   );

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,6 +42,9 @@ export default function LoginPage() {
 
   async function useDemoAccount() {
     setLoading(true);
+    setServerError('');
+    setEmail('demo.student@studyco.app');
+    setPassword('demo1234');
     try {
       const res = await api.post('/auth/demo-login');
       login(res.data.data.token, res.data.data.user);
@@ -50,10 +54,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function googleDemo() {
-    setServerError('Google sign-in requires NEXT_PUBLIC_GOOGLE_CLIENT_ID and the Google Identity script — wire it up in components/GoogleButton once you have credentials.');
   }
 
   return (
@@ -82,14 +82,12 @@ export default function LoginPage() {
         </div>
         {serverError && <p className="text-xs text-coral">{serverError}</p>}
         <button disabled={loading} className="w-full py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50">
-          {loading ? 'Logging in…' : 'Log in'}
+          {loading ? 'Logging in...' : 'Log in'}
         </button>
         <button type="button" onClick={useDemoAccount} className="w-full py-3 rounded-xl border border-amber text-amber-light font-semibold">
           Use demo account
         </button>
-        <button type="button" onClick={googleDemo} className="w-full py-3 rounded-xl border border-black/10 dark:border-white/15 font-semibold">
-          Continue with Google
-        </button>
+        <GoogleSignInButton onError={setServerError} />
         <p className="text-sm text-center text-ink/60 dark:text-white/50">
           No account? <Link href="/register" className="font-semibold text-primary dark:text-primary-light">Sign up</Link>
         </p>

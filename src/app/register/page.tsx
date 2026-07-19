@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    if (!name.trim()) { setError('Full name is required.'); return; }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Enter a valid email address.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true);
     try {
@@ -52,8 +55,9 @@ export default function RegisterPage() {
         </div>
         {error && <p className="text-xs text-coral">{error}</p>}
         <button disabled={loading} className="w-full py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-50">
-          {loading ? 'Creating…' : 'Create account'}
+          {loading ? 'Creating...' : 'Create account'}
         </button>
+        <GoogleSignInButton onError={setError} />
         <p className="text-sm text-center text-ink/60 dark:text-white/50">
           Already have an account? <Link href="/login" className="font-semibold text-primary dark:text-primary-light">Log in</Link>
         </p>
