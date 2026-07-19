@@ -16,7 +16,14 @@ const FAQS = [
 const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'Business', 'Test Prep'];
 
 export default function HomePage() {
-  const { data, isLoading } = useSessions({ sort: 'rating', limit: 4, page: 1 });
+  const { data, isLoading } = useSessions({ sort: 'rating', limit: 100, page: 1 });
+  const sessions = data?.data ?? [];
+  const featuredSessions = sessions.slice(0, 4);
+  const totalSeats = sessions.reduce((sum, session) => sum + Math.max(0, session.seatsTotal - session.seatsReserved), 0);
+  const subjects = new Set(sessions.map((session) => session.subject)).size;
+  const averageRating = sessions.length
+    ? (sessions.reduce((sum, session) => sum + session.ratingAverage, 0) / sessions.length).toFixed(1)
+    : '0.0';
 
   return (
     <div>
@@ -108,17 +115,17 @@ export default function HomePage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {isLoading
               ? Array.from({ length: 4 }).map((_, i) => <SessionCardSkeleton key={i} />)
-              : data?.data.map((session) => <SessionCard key={session._id} session={session} />)}
+              : featuredSessions.map((session) => <SessionCard key={session._id} session={session} />)}
           </div>
         </div>
       </section>
 
       <section className="py-16 bg-primary dark:bg-primary-dark text-paper">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div><Users className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">12k+</p><p className="text-sm opacity-70 mt-1 font-mono">sessions hosted</p></div>
-          <div><CalendarCheck className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">38k+</p><p className="text-sm opacity-70 mt-1 font-mono">students</p></div>
-          <div><Search className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">6</p><p className="text-sm opacity-70 mt-1 font-mono">subject areas</p></div>
-          <div><Sparkles className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">4.8</p><p className="text-sm opacity-70 mt-1 font-mono">average rating</p></div>
+          <div><Users className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{data?.meta?.total ?? sessions.length}</p><p className="text-sm opacity-70 mt-1 font-mono">upcoming sessions</p></div>
+          <div><CalendarCheck className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{totalSeats}</p><p className="text-sm opacity-70 mt-1 font-mono">open seats</p></div>
+          <div><Search className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{subjects}</p><p className="text-sm opacity-70 mt-1 font-mono">active subject areas</p></div>
+          <div><Sparkles className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{averageRating}</p><p className="text-sm opacity-70 mt-1 font-mono">average rating</p></div>
         </div>
       </section>
 
@@ -132,7 +139,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-5">
-            <SessionStatsChart sessions={data?.data ?? []} />
+            <SessionStatsChart sessions={sessions} />
           </div>
         </div>
       </section>
