@@ -21,6 +21,7 @@ export interface StudySession {
   date: string;
   imageUrl?: string;
   host: { _id: string; name: string } | string;
+  attendees?: string[];
   ratingAverage: number;
   ratingCount: number;
   seatsTotal: number;

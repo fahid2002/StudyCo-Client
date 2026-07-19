@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRight, Bot, CalendarCheck, FileText, Search, Sparkles, Users } from 'lucide-react';
 import { useSessions } from '@/hooks/useSessions';
 import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
+import { SessionStatsChart } from '@/components/SessionStatsChart';
 
 const FAQS = [
   ['Is it free to join?', 'Creating an account and browsing sessions is free. Individual sessions may be free or paid, set by the host.'],
@@ -122,6 +123,21 @@ export default function HomePage() {
       </section>
 
       <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[0.8fr_1.2fr] gap-8 items-center">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-widest text-coral mb-3">Live catalog data</p>
+            <h2 className="font-display text-3xl font-semibold">See where study seats are available</h2>
+            <p className="text-sm text-ink/60 dark:text-white/50 mt-3">
+              This chart is rendered with Recharts from the same MongoDB-backed session data used by the listings.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1B1F29] p-5">
+            <SessionStatsChart sessions={data?.data ?? []} />
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-paperdim dark:bg-[#181C25]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-3xl font-semibold mb-8">Subjects students are booking</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -134,7 +150,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 bg-paperdim dark:bg-[#181C25]">
+      <section className="py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-3xl font-semibold mb-8">Frequently asked</h2>
           <div className="space-y-3">
