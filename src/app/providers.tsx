@@ -1,0 +1,15 @@
+'use client';
+
+import { QueryProvider } from '@/lib/query-provider';
+import { AuthProvider } from '@/lib/auth-context';
+import { ThemeProvider } from '@/lib/theme-context';
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryProvider>
+      <AuthProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </AuthProvider>
+    </QueryProvider>
+  );
+}

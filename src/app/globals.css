@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper dark:bg-[#12151C] text-ink dark:text-[#ECE9E2] font-body transition-colors duration-300;
+}
+
+.marker {
+  position: relative;
+  white-space: nowrap;
+}
+.marker::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: 2px;
+  height: 38%;
+  background: #e8a33d;
+  opacity: 0.55;
+  z-index: -1;
+  transform: rotate(-1deg);
+  border-radius: 3px 8px 5px 9px;
+}
+html.dark .marker::before {
+  background: #f6c878;
+  opacity: 0.35;
+}
+
+.route-tag {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
