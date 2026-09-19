@@ -23,9 +23,7 @@ export function Footer() {
           <p className="font-mono text-xs uppercase text-ink/40 dark:text-white/40 mb-3">Product</p>
           <div className="flex flex-col gap-2 text-sm">
             <Link href="/explore">Explore sessions</Link>
-            <Link href="/ai/generator">Notes generator</Link>
-            <Link href="/ai/recommendations">Recommendations</Link>
-            <Link href="/ai/assistant">Assistant</Link>
+            <Link href="/ai">AI Tools</Link>
           </div>
         </div>
         <div>

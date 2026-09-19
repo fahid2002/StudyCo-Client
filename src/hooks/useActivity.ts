@@ -1,12 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
-import { Activity, ApiEnvelope } from '@/types';
+import { Activity, ActivityStats, ApiEnvelope } from '@/types';
 
 export function useActivityHistory() {
   return useQuery({
     queryKey: ['activity-history'],
     queryFn: async () => {
       const res = await api.get<ApiEnvelope<Activity[]>>('/activity');
+      return res.data.data;
+    },
+  });
+}
+
+export function useActivityStats() {
+  return useQuery({
+    queryKey: ['activity-stats'],
+    queryFn: async () => {
+      const res = await api.get<ApiEnvelope<ActivityStats>>('/activity/stats');
       return res.data.data;
     },
   });

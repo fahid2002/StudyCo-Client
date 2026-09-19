@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AuthRequired } from '@/components/AuthRequired';
 import { useRecommendations, useRecommendationFeedback } from '@/hooks/useRecommendations';
 import { SessionCard } from '@/components/SessionCard';
 import { useToast } from '@/lib/toast-context';
@@ -58,9 +58,9 @@ function RecommendationsContent() {
 
 export default function RecommendationsPage() {
   return (
-    <ProtectedRoute>
+    <AuthRequired featureName="Smart Recommendations">
       <RecommendationsContent />
-    </ProtectedRoute>
+    </AuthRequired>
   );
 }
 

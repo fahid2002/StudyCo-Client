@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AuthRequired } from '@/components/AuthRequired';
 import { useChatHistory, useSendStreamingChatMessage } from '@/hooks/useChat';
 import { ChatMessage } from '@/types';
 import { useToast } from '@/lib/toast-context';
@@ -130,8 +130,8 @@ function AssistantContent() {
 
 export default function AssistantPage() {
   return (
-    <ProtectedRoute>
+    <AuthRequired featureName="the AI Assistant">
       <AssistantContent />
-    </ProtectedRoute>
+    </AuthRequired>
   );
 }

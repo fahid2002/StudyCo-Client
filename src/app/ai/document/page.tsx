@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AuthRequired } from '@/components/AuthRequired';
 import { api } from '@/lib/axios';
 import { useToast } from '@/lib/toast-context';
 import { cleanAiText, downloadDocx } from '@/lib/document-utils';
@@ -46,6 +46,10 @@ function DocumentIntelligenceContent() {
       body: cleanAnalysis,
       filename: `${filename || 'studyco-document'}-summary`,
     });
+    await api.post('/activity/ai-download', {
+      filename: `${filename || 'studyco-document'}-summary.docx`,
+      tool: 'AI Document Intelligence',
+    }).catch(() => undefined);
     showToast('DOCX summary downloaded.', 'success');
   }
 
@@ -88,9 +92,9 @@ function DocumentIntelligenceContent() {
 
 export default function DocumentIntelligencePage() {
   return (
-    <ProtectedRoute>
+    <AuthRequired featureName="AI Document Intelligence">
       <DocumentIntelligenceContent />
-    </ProtectedRoute>
+    </AuthRequired>
   );
 }
 

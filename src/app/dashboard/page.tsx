@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Bot, Calculator, CalendarCheck, CalendarDays, Eye, FileText, History, LayoutDashboard, Library, ListChecks, PlusCircle, Star, Trash2, UserRound, WandSparkles, X } from 'lucide-react';
+import { Calculator, CalendarCheck, CalendarDays, Download, Eye, FileText, History, LayoutDashboard, Library, ListChecks, PlusCircle, Sparkles, Star, Trash2, UserRound, X } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
-import { useActivityHistory, useClearActivity, useDeleteActivity } from '@/hooks/useActivity';
+import { useActivityHistory, useActivityStats, useClearActivity, useDeleteActivity } from '@/hooks/useActivity';
 import { Activity } from '@/types';
 import { cleanAiText } from '@/lib/document-utils';
 
@@ -20,15 +20,13 @@ const tools = [
   { href: '/timetable', label: 'Study Timetable', detail: 'Plan study tasks and deadlines.', Icon: CalendarDays },
   { href: '/bookmarks', label: 'Bookmarks', detail: 'Review sessions you saved.', Icon: Star },
   { href: '/profile', label: 'My Profile', detail: 'Update your name and profile photo.', Icon: UserRound },
-  { href: '/ai/assistant', label: 'AI Assistant', detail: 'Ask contextual study and app questions.', Icon: Bot },
-  { href: '/ai/generator', label: 'AI Notes Generator', detail: 'Create notes, flashcards, summaries, and quizzes.', Icon: WandSparkles },
-  { href: '/ai/document', label: 'AI Document', detail: 'Analyze PDFs, DOCX files, and TXT notes.', Icon: FileText },
 ];
 
 function DashboardContent() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const { data: activities, isLoading } = useActivityHistory();
+  const { data: stats, isLoading: statsLoading } = useActivityStats();
   const deleteActivity = useDeleteActivity();
   const clearActivity = useClearActivity();
   const [openActivity, setOpenActivity] = useState<Activity | null>(null);
@@ -63,6 +61,23 @@ function DashboardContent() {
           Explore sessions
         </Link>
       </div>
+
+      <section className="grid gap-4 mt-8 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Active bookings', value: stats?.totalBookings, Icon: CalendarCheck },
+          { label: 'AI generations', value: stats?.generatedContent, Icon: Sparkles },
+          { label: 'Documents analyzed', value: stats?.analyzedDocuments, Icon: FileText },
+          { label: 'AI downloads', value: stats?.downloads, Icon: Download },
+        ].map(({ label, value, Icon }) => (
+          <div key={label} className="rounded-2xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-[#1B1F29]">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-ink/60 dark:text-white/50">{label}</p>
+              <Icon className="h-5 w-5 text-primary dark:text-primary-light" />
+            </div>
+            <p className="mt-3 font-display text-3xl font-semibold">{statsLoading ? '—' : value ?? 0}</p>
+          </div>
+        ))}
+      </section>
 
       <section className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-8">
         {tools.map(({ href, label, detail, Icon }) => (

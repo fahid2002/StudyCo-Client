@@ -33,8 +33,11 @@ export default function RegisterPage() {
       await api.post('/auth/register', { name, email, password, photoUrl });
       setNotice('Account created. Redirecting you to login...');
       showToast('Account created. Please log in now.', 'success');
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
       setTimeout(() => {
-        router.push('/login?message=Account created successfully. Please log in.');
+        const loginUrl = new URLSearchParams({ message: 'Account created successfully. Please log in.' });
+        if (returnTo) loginUrl.set('returnTo', returnTo);
+        router.push(`/login?${loginUrl.toString()}`);
       }, 1200);
     } catch (err) {
       const message = (err as Error).message;

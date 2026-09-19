@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AuthRequired } from '@/components/AuthRequired';
 import { useGenerateContent } from '@/hooks/useGenerator';
 import { useToast } from '@/lib/toast-context';
 import { cleanAiText, downloadDocx } from '@/lib/document-utils';
 import { useCreateNote } from '@/hooks/useStudyTools';
 import { useRouter } from 'next/navigation';
+import { api } from '@/lib/axios';
 
 function GeneratorContent() {
   const [type, setType] = useState<'Study notes' | 'Summary' | 'Flashcards' | 'Practice quiz'>('Study notes');
@@ -57,6 +58,10 @@ function GeneratorContent() {
       body: cleanOutput,
       filename: `${topic}-${type}`,
     });
+    await api.post('/activity/ai-download', {
+      filename: `${topic}-${type}.docx`,
+      tool: 'AI Notes Generator',
+    }).catch(() => undefined);
     showToast('DOCX downloaded successfully.', 'success');
   }
 
@@ -156,8 +161,8 @@ function GeneratorContent() {
 
 export default function GeneratorPage() {
   return (
-    <ProtectedRoute>
+    <AuthRequired featureName="the AI Notes Generator">
       <GeneratorContent />
-    </ProtectedRoute>
+    </AuthRequired>
   );
 }

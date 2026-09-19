@@ -78,6 +78,13 @@ export interface Activity {
   createdAt: string;
 }
 
+export interface ActivityStats {
+  totalBookings: number;
+  generatedContent: number;
+  analyzedDocuments: number;
+  downloads: number;
+}
+
 export interface SavedNote {
   _id: string;
   title: string;

@@ -27,11 +27,10 @@ export function Navbar() {
         <div className="hidden lg:flex items-center gap-6 text-sm font-medium">
           <Link href="/" className="hover:text-primary dark:hover:text-primary-light">Home</Link>
           <Link href="/explore" className="hover:text-primary dark:hover:text-primary-light">Explore</Link>
-          <Link href="/ai/assistant" className="hover:text-primary dark:hover:text-primary-light">AI Assistant</Link>
-          <Link href="/ai/generator" className="hover:text-primary dark:hover:text-primary-light">AI Notes Generator</Link>
-          {user && <Link href="/dashboard" className="hover:text-primary dark:hover:text-primary-light">Dashboard</Link>}
+          <Link href="/ai" className="hover:text-primary dark:hover:text-primary-light">AI Tools</Link>
           <Link href="/about" className="hover:text-primary dark:hover:text-primary-light">About</Link>
           <Link href="/contact" className="hover:text-primary dark:hover:text-primary-light">Contact</Link>
+          {user && <Link href="/dashboard" className="hover:text-primary dark:hover:text-primary-light">Dashboard</Link>}
         </div>
 
         <div className="flex items-center gap-3">
@@ -79,11 +78,10 @@ export function Navbar() {
         <div className="lg:hidden border-t border-black/10 dark:border-white/10 px-4 py-3 flex flex-col gap-3 text-sm font-medium bg-paper dark:bg-[#12151C]">
           <Link href="/">Home</Link>
           <Link href="/explore">Explore</Link>
-          <Link href="/ai/assistant">AI Assistant</Link>
-          <Link href="/ai/generator">AI Notes Generator</Link>
-          {user && <Link href="/dashboard">Dashboard</Link>}
+          <Link href="/ai">AI Tools</Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
+          {user && <Link href="/dashboard">Dashboard</Link>}
           {!user ? (
             <>
               <Link href="/login">Log in</Link>
