@@ -7,10 +7,12 @@ import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
+import { getSafeReturnTo } from '@/lib/redirect';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const returnTo = getSafeReturnTo(searchParams.get('returnTo'));
   const { login } = useAuth();
   const { showToast } = useToast();
   const [email, setEmail] = useState('');
@@ -36,7 +38,7 @@ function LoginForm() {
       const res = await api.post('/auth/login', { email, password });
       login(res.data.data.token, res.data.data.user);
       showToast('Login successful. Welcome back.', 'success');
-      router.push('/dashboard');
+      router.push(returnTo);
     } catch (err) {
       const message = (err as Error).message;
       setServerError(message);
@@ -55,7 +57,7 @@ function LoginForm() {
       const res = await api.post('/auth/demo-login');
       login(res.data.data.token, res.data.data.user);
       showToast('Demo login successful.', 'success');
-      router.push('/dashboard');
+      router.push(returnTo);
     } catch (err) {
       const message = (err as Error).message;
       setServerError(message);
@@ -102,6 +104,7 @@ function LoginForm() {
         </button>
         <GoogleSignInButton
           mode="login"
+          returnTo={returnTo}
           onError={(message) => {
             setServerError(message);
             showToast(message, 'error');

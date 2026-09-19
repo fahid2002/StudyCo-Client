@@ -30,6 +30,20 @@ export interface StudySession {
   createdAt: string;
 }
 
+export interface BookingRecord {
+  _id: string;
+  user: string;
+  session: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BookedSession {
+  session: StudySession;
+  booking: BookingRecord | null;
+}
+
 export interface Review {
   _id: string;
   session: string;
@@ -43,6 +57,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  photoUrl?: string;
   interests: string[];
 }
 

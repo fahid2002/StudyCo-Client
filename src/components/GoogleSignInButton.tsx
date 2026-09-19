@@ -9,9 +9,10 @@ interface GoogleSignInButtonProps {
   mode: 'login' | 'register';
   onError: (message: string) => void;
   onExistingAccount?: () => void;
+  returnTo?: string;
 }
 
-export function GoogleSignInButton({ mode, onError, onExistingAccount }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({ mode, onError, onExistingAccount, returnTo = '/dashboard' }: GoogleSignInButtonProps) {
   const { login } = useAuth();
   const { showToast } = useToast();
   const startGoogleLogin = useGoogleLogin({
@@ -29,7 +30,7 @@ export function GoogleSignInButton({ mode, onError, onExistingAccount }: GoogleS
         }
         login(res.data.data.token, res.data.data.user);
         showToast('Google login successful.', 'success');
-        window.location.href = '/dashboard';
+        window.location.href = returnTo;
       } catch (err) {
         const message = (err as Error).message;
         if (mode === 'register' && message.toLowerCase().includes('already exists')) {

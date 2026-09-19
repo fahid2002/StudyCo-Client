@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const { showToast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -23,10 +24,13 @@ export default function RegisterPage() {
     setNotice('');
     if (!name.trim()) { setError('Full name is required.'); return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError('Enter a valid email address.'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (password.length < 6 || !/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
+      setError('Password must be at least 6 characters and include one uppercase and one lowercase letter.');
+      return;
+    }
     setLoading(true);
     try {
-      await api.post('/auth/register', { name, email, password });
+      await api.post('/auth/register', { name, email, password, photoUrl });
       setNotice('Account created. Redirecting you to login...');
       showToast('Account created. Please log in now.', 'success');
       setTimeout(() => {
@@ -64,9 +68,16 @@ export default function RegisterPage() {
             className="w-full mt-1 px-4 py-2.5 rounded-xl bg-paperdim dark:bg-[#12151C] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
+          <label className="text-sm font-medium">Photo URL <span className="text-ink/40 dark:text-white/40">(optional)</span></label>
+          <input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} type="url"
+            placeholder="https://example.com/your-photo.jpg"
+            className="w-full mt-1 px-4 py-2.5 rounded-xl bg-paperdim dark:bg-[#12151C] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div>
           <label className="text-sm font-medium">Password</label>
           <input value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} type="password"
             className="w-full mt-1 px-4 py-2.5 rounded-xl bg-paperdim dark:bg-[#12151C] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <p className="mt-1 text-xs text-ink/45 dark:text-white/40">Use at least 6 characters, including one uppercase and one lowercase letter.</p>
         </div>
         {notice && <p className="text-xs text-primary dark:text-primary-light">{notice}</p>}
         {error && <p className="text-xs text-coral">{error}</p>}

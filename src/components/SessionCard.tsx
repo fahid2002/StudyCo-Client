@@ -6,6 +6,7 @@ import { StudySession } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { useToggleBookmark } from '@/hooks/useStudyTools';
+import { buildLoginUrl } from '@/lib/redirect';
 
 const FALLBACK_IMAGES: Record<string, string> = {
   Mathematics: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=900&q=80',
@@ -53,7 +54,7 @@ export function SessionCard({ session }: { session: StudySession }) {
           <p className="text-xs text-ink/40 dark:text-white/40 mt-1">{new Date(session.date).toLocaleString()}</p>
         </div>
         <Link
-          href={`/session/${session._id}`}
+          href={user ? `/session/${session._id}` : buildLoginUrl(`/session/${session._id}`)}
           className="mt-3 text-center text-sm font-semibold py-2 rounded-lg border border-primary text-primary dark:text-primary-light dark:border-primary-light"
         >
           View details

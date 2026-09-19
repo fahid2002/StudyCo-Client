@@ -118,6 +118,7 @@ npm run lint     # Run Next.js linting
 - `/login` - Login
 - `/register` - Registration
 - `/dashboard` - User dashboard
+- `/bookings` - My reserved study sessions
 - `/items/add` - Add a study session
 - `/items/manage` - Manage my sessions
 - `/ai/assistant` - AI chat assistant

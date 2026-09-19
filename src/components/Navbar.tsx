@@ -51,9 +51,14 @@ export function Navbar() {
           ) : (
             <div className="hidden sm:flex items-center gap-3">
               <span className="text-sm font-medium">Hi, {user.name.split(' ')[0]}</span>
-              <span className="w-8 h-8 rounded-full bg-coral text-white flex items-center justify-center text-xs font-bold">
-                {user.name.slice(0, 2).toUpperCase()}
-              </span>
+              <Link
+                href="/profile"
+                aria-label="Open profile"
+                className="w-8 h-8 rounded-full bg-coral text-white flex items-center justify-center text-xs font-bold bg-cover bg-center"
+                style={user.photoUrl ? { backgroundImage: `url(${user.photoUrl})` } : undefined}
+              >
+                {!user.photoUrl && user.name.slice(0, 2).toUpperCase()}
+              </Link>
               <button onClick={handleLogout} className="text-sm font-semibold px-3 py-2 hover:text-coral inline-flex items-center gap-1">
                 <LogOut className="h-4 w-4" /> Log out
               </button>
@@ -85,7 +90,10 @@ export function Navbar() {
               <Link href="/register">Sign up</Link>
             </>
           ) : (
-            <button onClick={handleLogout} className="text-left text-coral">Log out</button>
+            <>
+              <Link href="/profile">My Profile</Link>
+              <button onClick={handleLogout} className="text-left text-coral">Log out</button>
+            </>
           )}
         </div>
       )}

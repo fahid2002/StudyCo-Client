@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/hooks/useSessions';
 import { SessionCard } from '@/components/SessionCard';
 import { api } from '@/lib/axios';
@@ -9,6 +10,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { downloadDocx } from '@/lib/document-utils';
 import { useToggleBookmark } from '@/hooks/useStudyTools';
+import { buildLoginUrl } from '@/lib/redirect';
 
 type Tab = 'overview' | 'specs' | 'reviews' | 'related';
 
@@ -16,14 +18,23 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1524995997946-a1c2e315
 
 export default function SessionDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, refetch } = useSession(id);
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const { data, isLoading, refetch } = useSession(id, !!user && !authLoading);
   const { showToast } = useToast();
   const bookmark = useToggleBookmark();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('overview');
   const [reserving, setReserving] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace(buildLoginUrl(`${window.location.pathname}${window.location.search}`));
+    }
+  }, [authLoading, router, user]);
+
+  if (authLoading || !user) return <div className="max-w-6xl mx-auto px-4 py-20 text-center text-ink/40">Checking your account...</div>;
   if (isLoading) return <div className="max-w-6xl mx-auto px-4 py-20 text-center text-ink/40">Loading session...</div>;
   if (!data) return <div className="max-w-6xl mx-auto px-4 py-20 text-center text-ink/40">Session not found.</div>;
 
@@ -32,12 +43,16 @@ export default function SessionDetailsPage() {
   const imageUrl = session.imageUrl || FALLBACK_IMAGE;
 
   async function reserve() {
-    if (!user) { window.location.href = '/login'; return; }
+    if (!user) {
+      window.location.href = buildLoginUrl(`${window.location.pathname}${window.location.search}`);
+      return;
+    }
     setReserving(true);
     setError('');
     try {
       await api.post(`/sessions/${id}/reserve`);
       await refetch();
+      queryClient.invalidateQueries({ queryKey: ['booked-sessions'] });
       showToast(`Seat reserved for ${data?.session.title ?? 'this session'}.`, 'success');
     } catch (err) {
       const message = (err as Error).message;
