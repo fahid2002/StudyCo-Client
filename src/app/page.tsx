@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { ArrowRight, Bot, CalendarCheck, FileText, Search, Sparkles, Upload, Users } from 'lucide-react';
-import { useSessions } from '@/hooks/useSessions';
+import { useSessionStats, useSessions } from '@/hooks/useSessions';
 import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
 import { SessionStatsChart } from '@/components/SessionStatsChart';
+import { useAuth } from '@/lib/auth-context';
 
 const FAQS = [
   ['Is it free to join?', 'Creating an account and browsing sessions is free. Individual sessions may be free or paid, set by the host.'],
@@ -16,15 +17,12 @@ const FAQS = [
 const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'Business', 'Test Prep'];
 
 export default function HomePage() {
+  const { user, loading: authLoading } = useAuth();
   const { data, isLoading } = useSessions({ sort: 'rating', limit: 100, page: 1 });
+  const { data: stats } = useSessionStats();
   const sessions = data?.data ?? [];
   const featuredSessions = sessions.slice(0, 3);
   const heroSession = featuredSessions[0];
-  const totalSeats = sessions.reduce((sum, session) => sum + Math.max(0, session.seatsTotal - session.seatsReserved), 0);
-  const subjects = new Set(sessions.map((session) => session.subject)).size;
-  const averageRating = sessions.length
-    ? (sessions.reduce((sum, session) => sum + session.ratingAverage, 0) / sessions.length).toFixed(1)
-    : '0.0';
 
   return (
     <div>
@@ -41,9 +39,19 @@ export default function HomePage() {
             <Link href="/explore" className="px-5 py-3 rounded-xl bg-amber text-ink font-semibold text-sm inline-flex items-center justify-center gap-2">
               Explore sessions <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/register" className="px-5 py-3 rounded-xl border border-primary text-primary dark:text-primary-light font-semibold text-sm text-center">
-              Create free account
-            </Link>
+            {authLoading ? (
+              <span aria-hidden="true" className="px-5 py-3 rounded-xl border border-primary text-primary dark:text-primary-light font-semibold text-sm text-center invisible">
+                Create free account
+              </span>
+            ) : user ? (
+              <Link href="/bookings" className="px-5 py-3 rounded-xl border border-primary text-primary dark:text-primary-light font-semibold text-sm text-center">
+                My Bookings
+              </Link>
+            ) : (
+              <Link href="/register" className="px-5 py-3 rounded-xl border border-primary text-primary dark:text-primary-light font-semibold text-sm text-center">
+                Create free account
+              </Link>
+            )}
           </div>
         </div>
         <div className="space-y-5">
@@ -128,10 +136,10 @@ export default function HomePage() {
 
       <section className="py-16 bg-primary dark:bg-primary-dark text-paper">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div><Users className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{data?.meta?.total ?? sessions.length}</p><p className="text-sm opacity-70 mt-1 font-mono">upcoming sessions</p></div>
-          <div><CalendarCheck className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{totalSeats}</p><p className="text-sm opacity-70 mt-1 font-mono">open seats</p></div>
-          <div><Search className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{subjects}</p><p className="text-sm opacity-70 mt-1 font-mono">active subject areas</p></div>
-          <div><Sparkles className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{averageRating}</p><p className="text-sm opacity-70 mt-1 font-mono">average rating</p></div>
+          <div><Users className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{stats?.totalSessions ?? '—'}</p><p className="text-sm opacity-70 mt-1 font-mono">upcoming sessions</p></div>
+          <div><CalendarCheck className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{stats?.openSeats ?? '—'}</p><p className="text-sm opacity-70 mt-1 font-mono">open seats</p></div>
+          <div><Search className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{stats?.activeSubjects ?? '—'}</p><p className="text-sm opacity-70 mt-1 font-mono">active subject areas</p></div>
+          <div><Sparkles className="h-6 w-6 mx-auto mb-2" /><p className="font-display text-4xl font-bold">{stats?.averageRating?.toFixed(1) ?? '—'}</p><p className="text-sm opacity-70 mt-1 font-mono">average rating</p></div>
         </div>
       </section>
 

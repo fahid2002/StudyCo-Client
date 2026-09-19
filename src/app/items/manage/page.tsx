@@ -1,22 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useMySessions } from '@/hooks/useSessions';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import Link from 'next/link';
 import { useToast } from '@/lib/toast-context';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 function ManageContent() {
   const { data, isLoading } = useMySessions();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const qc = useQueryClient();
   const { showToast } = useToast();
 
-  async function handleDelete(id: string) {
+  async function handleDelete() {
+    if (!deletingId) return;
     try {
-      await api.delete(`/sessions/${id}`);
+      await api.delete(`/sessions/${deletingId}`);
       qc.invalidateQueries({ queryKey: ['my-sessions'] });
       showToast('Session deleted successfully.', 'success');
+      setDeletingId(null);
     } catch (error) {
       showToast((error as Error).message, 'error');
     }
@@ -45,13 +50,21 @@ function ManageContent() {
                 <td className="text-ink/60 dark:text-white/50">{s.seatsReserved}/{s.seatsTotal}</td>
                 <td className="flex gap-2 py-3">
                   <Link href={`/session/${s._id}`} className="text-primary dark:text-primary-light font-semibold text-xs">View</Link>
-                  <button onClick={() => handleDelete(s._id)} className="text-coral font-semibold text-xs">Delete</button>
+                  <button onClick={() => setDeletingId(s._id)} className="text-coral font-semibold text-xs">Delete</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <ConfirmDialog
+        open={Boolean(deletingId)}
+        title="Delete session?"
+        description="This will permanently remove the session and its booking data. This action cannot be undone."
+        confirmLabel="Delete session"
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

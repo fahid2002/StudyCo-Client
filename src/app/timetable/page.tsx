@@ -5,6 +5,7 @@ import { Trash2 } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useCreateTimetableItem, useDeleteTimetableItem, useTimetable } from '@/hooks/useStudyTools';
 import { useToast } from '@/lib/toast-context';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 function TimetableContent() {
   const { data } = useTimetable();
@@ -12,6 +13,7 @@ function TimetableContent() {
   const deleteItem = useDeleteTimetableItem();
   const { showToast } = useToast();
   const [form, setForm] = useState({ title: '', subject: '', startAt: '', notes: '' });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,10 +42,25 @@ function TimetableContent() {
               <p className="text-sm text-ink/60 dark:text-white/50">{item.subject} / {new Date(item.startAt).toLocaleString()}</p>
               {item.notes && <p className="text-sm text-ink/50 dark:text-white/40 mt-1">{item.notes}</p>}
             </div>
-            <button onClick={() => deleteItem.mutate(item._id, { onSuccess: () => showToast('Study plan deleted.', 'success') })} className="p-2 text-coral"><Trash2 className="h-4 w-4" /></button>
+            <button onClick={() => setDeletingId(item._id)} className="p-2 text-coral"><Trash2 className="h-4 w-4" /></button>
           </div>
         ))}
       </div>
+      <ConfirmDialog
+        open={Boolean(deletingId)}
+        title="Delete study plan?"
+        description="This study plan will be permanently removed from your timetable."
+        confirmLabel="Delete plan"
+        isPending={deleteItem.isPending}
+        onClose={() => setDeletingId(null)}
+        onConfirm={() => {
+          if (!deletingId) return;
+          deleteItem.mutate(deletingId, {
+            onSuccess: () => { showToast('Study plan deleted.', 'success'); setDeletingId(null); },
+            onError: (error) => showToast((error as Error).message, 'error'),
+          });
+        }}
+      />
     </div>
   );
 }

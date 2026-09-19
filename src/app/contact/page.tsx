@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/lib/toast-context';
+import { useSendContactMessage } from '@/hooks/useContact';
 
 type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -9,6 +10,7 @@ export default function ContactPage() {
   const [status, setStatus] = useState<SendState>('idle');
   const [error, setError] = useState('');
   const { showToast } = useToast();
+  const sendContactMessage = useSendContactMessage();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -16,49 +18,26 @@ export default function ContactPage() {
     const formData = new FormData(formElement);
     const name = String(formData.get('name') ?? '');
     const email = String(formData.get('email') ?? '');
-    const subject = `StudyCo contact from ${name}`;
+    const subject = String(formData.get('subject') ?? 'General enquiry');
     const message = String(formData.get('message') ?? '');
 
-    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-
-    if (serviceId && templateId && publicKey) {
-      setStatus('sending');
-      setError('');
-      try {
-        const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_id: serviceId,
-            template_id: templateId,
-            user_id: publicKey,
-            template_params: {
-              name,
-              email,
-              subject,
-              message,
-            },
-          }),
-        });
-
-        if (!response.ok) throw new Error('EmailJS could not send the message.');
-        setStatus('sent');
-        showToast('Message sent successfully.', 'success');
-        formElement.reset();
-        return;
-      } catch (err) {
-        setStatus('error');
-        setError((err as Error).message);
-        showToast((err as Error).message, 'error');
-        return;
+    setStatus('sending');
+    setError('');
+    sendContactMessage.mutate(
+      { name, email, subject, message },
+      {
+        onSuccess: () => {
+          setStatus('sent');
+          showToast('Message sent successfully.', 'success');
+          formElement.reset();
+        },
+        onError: (requestError) => {
+          setStatus('error');
+          setError((requestError as Error).message);
+          showToast((requestError as Error).message, 'error');
+        },
       }
-    }
-
-    window.location.href = `mailto:support@studyco.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${message}\n\nReply to: ${email}`)}`;
-    setStatus('sent');
-    showToast('Email app opened with your message.', 'info');
+    );
   }
 
   return (
@@ -68,6 +47,7 @@ export default function ContactPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input name="name" required placeholder="Name" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           <input name="email" required type="email" placeholder="Email" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input name="subject" required placeholder="Subject" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           <textarea name="message" required rows={4} placeholder="How can we help?" className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1B1F29] text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           <button disabled={status === 'sending'} className="px-6 py-3 rounded-xl bg-primary text-paper font-semibold disabled:opacity-60">
             {status === 'sending' ? 'Sending...' : 'Send message'}

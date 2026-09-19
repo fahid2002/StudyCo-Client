@@ -12,6 +12,25 @@ export interface SessionFilters {
   limit?: number;
 }
 
+export interface SessionStats {
+  totalSessions: number;
+  openSeats: number;
+  activeSubjects: number;
+  averageRating: number;
+}
+
+export function useSessionStats() {
+  return useQuery({
+    queryKey: ['session-stats'],
+    queryFn: async () => {
+      const res = await api.get<ApiEnvelope<SessionStats>>('/sessions/stats');
+      return res.data.data;
+    },
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
 export function useSessions(filters: SessionFilters) {
   return useQuery({
     queryKey: ['sessions', filters],

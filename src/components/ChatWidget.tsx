@@ -11,6 +11,7 @@ const SUGGESTIONS = ['Find me a calculus session', 'How do I add a study session
 export function ChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const [input, setInput] = useState('');
   const { data: history } = useChatHistory();
   const sendMessage = useSendChatMessage();
@@ -18,8 +19,15 @@ export function ChatWidget() {
   const { showToast } = useToast();
 
   useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [history, sendMessage.isPending]);
+    if (!open) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const log = logRef.current;
+      if (log) log.scrollTo({ top: log.scrollHeight, behavior: 'auto' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, history, sendMessage.isPending]);
 
   if (!user) return null;
 
@@ -51,7 +59,7 @@ export function ChatWidget() {
             <button onClick={() => setOpen(false)} aria-label="Close assistant"><X className="h-4 w-4" /></button>
           </div>
 
-          <div ref={logRef} className="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
+          <div ref={logRef} className="studyco-scroll flex-1 overflow-y-auto p-4 space-y-3 text-sm">
             {(history ?? []).map((m, i) => (
               <div
                 key={m._id ?? i}
@@ -65,21 +73,45 @@ export function ChatWidget() {
               </div>
             ))}
             {sendMessage.isPending && (
-              <div className="bg-paperdim dark:bg-[#242938] rounded-xl rounded-tl-none px-3 py-2 w-fit text-xs">Typing...</div>
+              <div role="status" aria-label="Assistant is typing" className="bg-paperdim dark:bg-[#242938] rounded-xl rounded-tl-none px-3 py-2 w-fit text-xs text-ink/60 dark:text-white/60">
+                <span>Typing</span>
+                <span aria-hidden="true" className="ml-0.5 inline-flex gap-0.5 align-baseline">
+                  <span className="animate-bounce" style={{ animationDelay: '-0.3s' }}>.</span>
+                  <span className="animate-bounce" style={{ animationDelay: '-0.15s' }}>.</span>
+                  <span className="animate-bounce">.</span>
+                </span>
+              </div>
             )}
           </div>
 
-          <div className="px-3 flex gap-2 flex-wrap pb-2">
-            {SUGGESTIONS.map((s) => (
-              <button
-                key={s}
-                onClick={() => send(s)}
-                className="text-xs px-3 py-1.5 rounded-full border border-black/10 dark:border-white/15"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          {showSuggestions && (
+            <div className="border-t border-black/5 px-3 pb-2 pt-2 dark:border-white/5">
+              <div className="mb-1 flex items-center justify-between px-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-ink/40 dark:text-white/40">Suggestions</span>
+                <button
+                  type="button"
+                  onClick={() => setShowSuggestions(false)}
+                  className="rounded-full p-1 text-ink/40 hover:bg-black/5 hover:text-ink dark:text-white/40 dark:hover:bg-white/10 dark:hover:text-white"
+                  aria-label="Hide suggestions"
+                  title="Hide suggestions"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => send(s)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-black/10 dark:border-white/15"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <form
             onSubmit={(e) => {

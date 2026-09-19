@@ -9,6 +9,7 @@ import { useToast } from '@/lib/toast-context';
 import { useActivityHistory, useActivityStats, useClearActivity, useDeleteActivity } from '@/hooks/useActivity';
 import { Activity } from '@/types';
 import { cleanAiText } from '@/lib/document-utils';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 const tools = [
   { href: '/bookings', label: 'My Bookings', detail: 'Review sessions you have reserved.', Icon: CalendarCheck },
@@ -30,17 +31,20 @@ function DashboardContent() {
   const deleteActivity = useDeleteActivity();
   const clearActivity = useClearActivity();
   const [openActivity, setOpenActivity] = useState<Activity | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Activity | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
-  function deleteOne(id: string) {
-    deleteActivity.mutate(id, {
-      onSuccess: () => showToast('History item deleted.', 'success'),
+  function deleteOne() {
+    if (!deleteTarget) return;
+    deleteActivity.mutate(deleteTarget._id, {
+      onSuccess: () => { showToast('History item deleted.', 'success'); setDeleteTarget(null); },
       onError: (error) => showToast((error as Error).message, 'error'),
     });
   }
 
   function clearAll() {
     clearActivity.mutate(undefined, {
-      onSuccess: () => showToast('Activity history cleared.', 'success'),
+      onSuccess: () => { showToast('Activity history cleared.', 'success'); setConfirmClear(false); },
       onError: (error) => showToast((error as Error).message, 'error'),
     });
   }
@@ -128,7 +132,7 @@ function DashboardContent() {
           </div>
           <button
             type="button"
-            onClick={clearAll}
+            onClick={() => setConfirmClear(true)}
             disabled={!activities?.length || clearActivity.isPending}
             className="w-fit rounded-xl border border-coral px-4 py-2 text-sm font-semibold text-coral disabled:opacity-50"
           >
@@ -163,7 +167,7 @@ function DashboardContent() {
                 )}
                 <button
                   type="button"
-                  onClick={() => deleteOne(activity._id)}
+                  onClick={() => setDeleteTarget(activity)}
                   className="rounded-lg p-2 text-coral hover:bg-coral/10"
                   aria-label="Delete history item"
                 >
@@ -194,6 +198,25 @@ function DashboardContent() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete history item?"
+        description="This activity item will be permanently removed from your account history."
+        confirmLabel="Delete item"
+        isPending={deleteActivity.isPending}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={deleteOne}
+      />
+      <ConfirmDialog
+        open={confirmClear}
+        title="Clear activity history?"
+        description="All of your saved activity history will be permanently removed."
+        confirmLabel="Clear history"
+        isPending={clearActivity.isPending}
+        onClose={() => setConfirmClear(false)}
+        onConfirm={clearAll}
+      />
     </div>
   );
 }

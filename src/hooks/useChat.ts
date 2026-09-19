@@ -19,6 +19,25 @@ export function useSendChatMessage() {
       const res = await api.post('/ai/chat', { message });
       return res.data.data as { reply: string };
     },
+    onMutate: async (message) => {
+      await qc.cancelQueries({ queryKey: ['chat-history'] });
+      const previous = qc.getQueryData<ChatMessage[]>(['chat-history']);
+      const optimisticMessage: ChatMessage = {
+        _id: `optimistic-${Date.now()}`,
+        role: 'user',
+        content: message,
+      };
+      qc.setQueryData<ChatMessage[]>(['chat-history'], (current) => [
+        ...(current ?? []),
+        optimisticMessage,
+      ]);
+      return { previous };
+    },
+    onError: (_error, _message, context) => {
+      if (context?.previous) {
+        qc.setQueryData(['chat-history'], context.previous);
+      }
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['chat-history'] }),
   });
 }

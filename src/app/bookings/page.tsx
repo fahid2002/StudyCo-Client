@@ -8,6 +8,7 @@ import { useBookedSessions, useCancelBooking, useUpdateBooking } from '@/hooks/u
 import { BookedSession } from '@/types';
 import { useToast } from '@/lib/toast-context';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 function BookingsContent() {
   const { data: bookings, isLoading, error } = useBookedSessions();
@@ -16,6 +17,7 @@ function BookingsContent() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [editing, setEditing] = useState<BookedSession | null>(null);
+  const [cancelling, setCancelling] = useState<BookedSession | null>(null);
   const [note, setNote] = useState('');
 
   function openEditor(item: BookedSession) {
@@ -50,14 +52,20 @@ function BookingsContent() {
   }
 
   function cancelOne(item: BookedSession) {
-    if (cancelBooking.isPending || !window.confirm(`Cancel your booking for “${item.session.title}”? The seat will be released.`)) return;
+    if (cancelBooking.isPending) return;
+    setCancelling(item);
+  }
 
-    cancelBooking.mutate(item.session._id, {
+  function confirmCancellation() {
+    if (!cancelling) return;
+
+    cancelBooking.mutate(cancelling.session._id, {
       onSuccess: () => {
         queryClient.setQueryData<BookedSession[]>(['booked-sessions'], (current) =>
-          current?.filter((booking) => booking.session._id !== item.session._id)
+          current?.filter((booking) => booking.session._id !== cancelling.session._id)
         );
         showToast('Booking cancelled and the seat was released.', 'success');
+        setCancelling(null);
       },
       onError: (requestError) => showToast((requestError as Error).message, 'error'),
     });
@@ -164,6 +172,16 @@ function BookingsContent() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(cancelling)}
+        title="Cancel booking?"
+        description={cancelling ? `Cancel your booking for “${cancelling.session.title}”? The seat will be released.` : ''}
+        confirmLabel="Cancel booking"
+        isPending={cancelBooking.isPending}
+        onClose={() => setCancelling(null)}
+        onConfirm={confirmCancellation}
+      />
     </div>
   );
 }

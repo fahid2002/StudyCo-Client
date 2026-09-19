@@ -6,11 +6,13 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useDeleteNote, useSavedNotes } from '@/hooks/useStudyTools';
 import { cleanAiText, downloadDocx } from '@/lib/document-utils';
 import { useToast } from '@/lib/toast-context';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 function NotesContent() {
   const [search, setSearch] = useState('');
   const [folder, setFolder] = useState('');
   const [openId, setOpenId] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { data: notes, isLoading } = useSavedNotes({ search, folder });
   const deleteNote = useDeleteNote();
   const { showToast } = useToast();
@@ -48,7 +50,7 @@ function NotesContent() {
                 <p className="text-xs font-mono text-ink/40 dark:text-white/40 mt-1">{note.folder} / {new Date(note.createdAt).toLocaleDateString()}</p>
               </button>
               <button
-                onClick={() => deleteNote.mutate(note._id, { onSuccess: () => showToast('Saved note deleted.', 'success') })}
+                onClick={() => setDeletingId(note._id)}
                 className="p-2 text-coral"
                 aria-label="Delete note"
               >
@@ -80,6 +82,21 @@ function NotesContent() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deletingId)}
+        title="Delete saved note?"
+        description="This saved note will be permanently removed from your library."
+        confirmLabel="Delete note"
+        isPending={deleteNote.isPending}
+        onClose={() => setDeletingId(null)}
+        onConfirm={() => {
+          if (!deletingId) return;
+          deleteNote.mutate(deletingId, {
+            onSuccess: () => { showToast('Saved note deleted.', 'success'); setDeletingId(null); },
+            onError: (error) => showToast((error as Error).message, 'error'),
+          });
+        }}
+      />
     </div>
   );
 }
