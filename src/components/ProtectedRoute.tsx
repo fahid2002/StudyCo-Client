@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { buildLoginUrl } from '@/lib/redirect';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -17,7 +18,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, pathname, router]);
 
-  if (loading) return <div className="min-h-[40vh] flex items-center justify-center text-ink/40 dark:text-white/40">Loading...</div>;
+  if (loading) return <div className="min-h-[40vh] flex items-center justify-center"><LoadingSpinner label="Checking your account..." /></div>;
   if (!user) return null;
 
   return <>{children}</>;

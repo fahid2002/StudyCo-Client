@@ -35,6 +35,7 @@ export interface BookingRecord {
   user: string;
   session: string;
   note: string;
+  status: 'reserved' | 'cancelled';
   createdAt: string;
   updatedAt: string;
 }

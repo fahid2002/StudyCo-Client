@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
-import { ApiEnvelope, BookedSession, BookingRecord, StudySession } from '@/types';
+import { ApiEnvelope, BookedSession, BookingRecord, Review, StudySession } from '@/types';
 
 export interface SessionFilters {
   search?: string;
@@ -65,7 +65,19 @@ export function useUpdateBooking() {
 export function useCancelBooking() {
   return useMutation({
     mutationFn: async (sessionId: string) => {
-      const res = await api.delete<ApiEnvelope<{ sessionId: string; seatsReserved: number }>>(`/sessions/${sessionId}/booking`);
+      const res = await api.delete<ApiEnvelope<{ sessionId: string; seatsReserved: number; status: 'cancelled' }>>(`/sessions/${sessionId}/booking`);
+      return res.data.data;
+    },
+  });
+}
+
+export function useSubmitReview() {
+  return useMutation({
+    mutationFn: async (input: { sessionId: string; rating: number; comment: string }) => {
+      const res = await api.post<ApiEnvelope<Review>>(`/sessions/${input.sessionId}/reviews`, {
+        rating: input.rating,
+        comment: input.comment,
+      });
       return res.data.data;
     },
   });

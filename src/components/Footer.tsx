@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Github, Linkedin } from 'lucide-react';
 import { StudyCoMark } from './StudyCoLogo';
 
 export function Footer() {
@@ -39,8 +40,12 @@ export function Footer() {
           <div className="flex flex-col gap-2 text-sm">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            <a href="https://github.com/fahid2002/StudyCo-Client" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="https://www.linkedin.com/in/fahid-hasan/" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="https://github.com/fahid2002/StudyCo-Client" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-primary dark:hover:text-primary-light">
+              <Github className="h-4 w-4" aria-hidden="true" /> GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/fahid-hasan/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-primary dark:hover:text-primary-light">
+              <Linkedin className="h-4 w-4" aria-hidden="true" /> LinkedIn
+            </a>
           </div>
         </div>
       </div>

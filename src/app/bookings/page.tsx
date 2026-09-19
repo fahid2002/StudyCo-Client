@@ -7,6 +7,7 @@ import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
 import { useBookedSessions, useCancelBooking, useUpdateBooking } from '@/hooks/useSessions';
 import { BookedSession } from '@/types';
 import { useToast } from '@/lib/toast-context';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 function BookingsContent() {
   const { data: bookings, isLoading, error } = useBookedSessions();
@@ -73,9 +74,12 @@ function BookingsContent() {
       </div>
 
       {isLoading && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
-          {Array.from({ length: 4 }).map((_, index) => <SessionCardSkeleton key={index} />)}
-        </div>
+        <>
+          <div className="mt-8"><LoadingSpinner label="Loading your bookings..." /></div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-5">
+            {Array.from({ length: 4 }).map((_, index) => <SessionCardSkeleton key={index} />)}
+          </div>
+        </>
       )}
 
       {!isLoading && error && (

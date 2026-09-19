@@ -18,7 +18,7 @@ const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'B
 export default function HomePage() {
   const { data, isLoading } = useSessions({ sort: 'rating', limit: 100, page: 1 });
   const sessions = data?.data ?? [];
-  const featuredSessions = sessions.slice(0, 4);
+  const featuredSessions = sessions.slice(0, 3);
   const heroSession = featuredSessions[0];
   const totalSeats = sessions.reduce((sum, session) => sum + Math.max(0, session.seatsTotal - session.seatsReserved), 0);
   const subjects = new Set(sessions.map((session) => session.subject)).size;
@@ -118,9 +118,9 @@ export default function HomePage() {
             </div>
             <Link href="/explore" className="text-sm font-semibold text-primary dark:text-primary-light">Explore all sessions</Link>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {isLoading
-              ? Array.from({ length: 4 }).map((_, i) => <SessionCardSkeleton key={i} />)
+              ? Array.from({ length: 3 }).map((_, i) => <SessionCardSkeleton key={i} />)
               : featuredSessions.map((session) => <SessionCard key={session._id} session={session} />)}
           </div>
         </div>

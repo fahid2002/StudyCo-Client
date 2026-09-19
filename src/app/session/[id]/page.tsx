@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession } from '@/hooks/useSessions';
+import { useSession, useSubmitReview } from '@/hooks/useSessions';
 import { SessionCard } from '@/components/SessionCard';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth-context';
@@ -11,6 +11,7 @@ import { useToast } from '@/lib/toast-context';
 import { downloadDocx } from '@/lib/document-utils';
 import { useToggleBookmark } from '@/hooks/useStudyTools';
 import { buildLoginUrl } from '@/lib/redirect';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 type Tab = 'overview' | 'specs' | 'reviews' | 'related';
 
@@ -23,10 +24,13 @@ export default function SessionDetailsPage() {
   const { data, isLoading, refetch } = useSession(id, !!user && !authLoading);
   const { showToast } = useToast();
   const bookmark = useToggleBookmark();
+  const submitReview = useSubmitReview();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('overview');
   const [reserving, setReserving] = useState(false);
   const [error, setError] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -34,13 +38,14 @@ export default function SessionDetailsPage() {
     }
   }, [authLoading, router, user]);
 
-  if (authLoading || !user) return <div className="max-w-6xl mx-auto px-4 py-20 text-center text-ink/40">Checking your account...</div>;
-  if (isLoading) return <div className="max-w-6xl mx-auto px-4 py-20 text-center text-ink/40">Loading session...</div>;
+  if (authLoading || !user) return <div className="max-w-6xl mx-auto px-4 py-20 flex justify-center"><LoadingSpinner label="Checking your account..." /></div>;
+  if (isLoading) return <div className="max-w-6xl mx-auto px-4 py-20 flex justify-center"><LoadingSpinner label="Loading session..." /></div>;
   if (!data) return <div className="max-w-6xl mx-auto px-4 py-20 text-center text-ink/40">Session not found.</div>;
 
   const { session, reviews, related } = data;
   const hostName = typeof session.host === 'string' ? 'Host' : session.host.name;
   const imageUrl = session.imageUrl || FALLBACK_IMAGE;
+  const canReview = Boolean(session.attendees?.some((attendee) => String(attendee) === String(user.id)));
 
   async function reserve() {
     if (!user) {
@@ -85,6 +90,27 @@ Seats: ${session.seatsReserved}/${session.seatsTotal}
     showToast('Session recap downloaded.', 'success');
   }
 
+  function submitReviewForm(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!reviewRating || !reviewComment.trim()) {
+      showToast('Choose a rating and write a comment first.', 'error');
+      return;
+    }
+
+    submitReview.mutate(
+      { sessionId: session._id, rating: reviewRating, comment: reviewComment.trim() },
+      {
+        onSuccess: async () => {
+          await refetch();
+          setReviewRating(0);
+          setReviewComment('');
+          showToast('Review submitted successfully!', 'success');
+        },
+        onError: (requestError) => showToast((requestError as Error).message, 'error'),
+      }
+    );
+  }
+
   const tabs: { key: Tab; label: string }[] = [
     { key: 'overview', label: 'Overview' },
     { key: 'specs', label: 'Key info' },
@@ -127,6 +153,45 @@ Seats: ${session.seatsReserved}/${session.seatsTotal}
         )}
         {tab === 'reviews' && (
           <div className="py-6 space-y-4 text-sm">
+            {user && canReview && (
+              <form onSubmit={submitReviewForm} className="rounded-2xl border border-primary/20 bg-primary/5 p-5 dark:bg-primary/10">
+                <p className="font-display text-xl font-semibold">Share your experience</p>
+                <p className="mt-1 text-sm text-ink/60 dark:text-white/50">You can review this session after reserving a seat.</p>
+                <div className="mt-4 flex items-center gap-2" aria-label="Choose a rating">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setReviewRating(value)}
+                      className={`text-2xl ${value <= reviewRating ? 'text-amber' : 'text-ink/20 dark:text-white/20'}`}
+                      aria-label={`Rate ${value} out of 5`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="text-xs text-ink/50 dark:text-white/40">{reviewRating ? `${reviewRating}/5` : 'Select rating'}</span>
+                </div>
+                <textarea
+                  value={reviewComment}
+                  onChange={(event) => setReviewComment(event.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder="What did you think about this session?"
+                  className="mt-4 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary dark:border-white/15 dark:bg-[#12151C]"
+                />
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-xs text-ink/40 dark:text-white/40">{reviewComment.length}/1000</span>
+                  <button type="submit" disabled={submitReview.isPending} className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-paper disabled:opacity-50">
+                    {submitReview.isPending ? 'Submitting...' : 'Submit review'}
+                  </button>
+                </div>
+              </form>
+            )}
+            {user && !canReview && (
+              <p className="rounded-xl bg-paperdim p-4 text-sm text-ink/60 dark:bg-[#12151C] dark:text-white/50">
+                Reserve a seat in this session to submit a review.
+              </p>
+            )}
             {reviews.length === 0 && <p className="text-ink/40 dark:text-white/40">No reviews yet.</p>}
             {(reviews as { _id: string; author: { name: string }; rating: number; comment: string }[]).map((review) => (
               <div key={review._id} className="border-b border-black/5 dark:border-white/10 pb-4">

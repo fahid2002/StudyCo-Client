@@ -6,6 +6,7 @@ import { useSessions } from '@/hooks/useSessions';
 import { SessionCard, SessionCardSkeleton } from '@/components/SessionCard';
 import { useBookmarks } from '@/hooks/useStudyTools';
 import { useAuth } from '@/lib/auth-context';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const SUBJECTS = ['Mathematics', 'Computer Science', 'Languages', 'Sciences', 'Business', 'Test Prep'];
 
@@ -62,7 +63,7 @@ function ExploreContent() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-4 min-h-[300px]">
         {isLoading
-          ? Array.from({ length: 8 }).map((_, i) => <SessionCardSkeleton key={i} />)
+          ? <><div className="col-span-full"><LoadingSpinner label="Loading sessions..." /></div>{Array.from({ length: 8 }).map((_, i) => <SessionCardSkeleton key={i} />)}</>
           : sessions?.length
           ? sessions.map((s) => <SessionCard key={s._id} session={s} />)
           : (
